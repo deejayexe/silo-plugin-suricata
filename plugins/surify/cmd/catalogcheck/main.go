@@ -3,8 +3,10 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	pb "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
 	manifestutil "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest"
@@ -12,12 +14,37 @@ import (
 )
 
 func main() {
-	if len(os.Args) != 2 {
-		panic("usage: catalogcheck catalog.json")
+	normalize := flag.Bool("normalize", false, "serialize manifests with Silo's numeric protobuf enums")
+	flag.Parse()
+	if flag.NArg() != 1 {
+		panic("usage: catalogcheck [-normalize] catalog.json")
 	}
-	raw, err := os.ReadFile(os.Args[1])
+	path := flag.Arg(0)
+	raw, err := os.ReadFile(path)
 	if err != nil {
 		panic(err)
+	}
+	if *normalize {
+		var input struct {
+			Plugins []map[string]json.RawMessage `json:"plugins"`
+		}
+		if err := json.Unmarshal(raw, &input); err != nil {
+			panic(err)
+		}
+		for _, entry := range input.Plugins {
+			m, err := manifestutil.Load(entry["manifest"])
+			if err != nil {
+				panic(err)
+			}
+			entry["manifest"], err = json.Marshal(m)
+			if err != nil {
+				panic(err)
+			}
+		}
+		raw, err = json.MarshalIndent(input, "", "  ")
+		if err != nil {
+			panic(err)
+		}
 	}
 	var catalog struct {
 		Plugins []struct {
@@ -60,5 +87,12 @@ func main() {
 			}
 		}
 		fmt.Println("Validated", m.PluginId, m.Version)
+	}
+	if *normalize {
+		for _, name := range []string{"manifest.json", "repository.json"} {
+			if err := os.WriteFile(filepath.Join(filepath.Dir(path), name), append(raw, '\n'), 0644); err != nil {
+				panic(err)
+			}
+		}
 	}
 }

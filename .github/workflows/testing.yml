@@ -105,7 +105,7 @@ jobs:
           python3 -m unittest discover -s tests -v
           python3 scripts/catalog.py --repo "$GITHUB_REPOSITORY" --tag "$RELEASE_TAG" --build-number "$BUILD_NUMBER"
           cd plugins/surify
-          go run ./cmd/catalogcheck ../../dist/manifest.json
+          go run ./cmd/catalogcheck -normalize ../../dist/manifest.json
       - name: Publish testing packages
         env:
           GH_TOKEN: ${{ github.token }}
