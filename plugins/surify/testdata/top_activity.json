@@ -1,0 +1,14 @@
+{
+  "days": 7,
+  "limit": 25,
+  "titles": [
+    {"media_item_id": "m1", "title": "Severance", "media_type": "series", "plays": 14, "total_seconds": 40000},
+    {"media_item_id": "m2", "title": "The Bear", "media_type": "series", "plays": 9, "total_seconds": 20000},
+    {"media_item_id": "m3", "title": "Dune: Part Two", "media_type": "movie", "plays": 1, "total_seconds": 9000}
+  ],
+  "profiles": [
+    {"user_id": "13", "username": "bob", "profile_id": "p9", "profile_name": "bob", "plays": 22, "total_seconds": 34800},
+    {"user_id": "12", "username": "alice", "profile_id": "p5", "profile_name": "Kids", "plays": 31, "total_seconds": 43500},
+    {"user_id": "9", "username": "sam", "profile_id": "p7", "profile_name": "Sam", "plays": 18, "total_seconds": 25320}
+  ]
+}

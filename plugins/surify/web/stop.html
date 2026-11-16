@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="same-origin">
+  <title>Live streams · Surify · Silo</title>
+  <style>
+    :root {
+      --bg: #0e1014; --surface: #161920; --surface-2: #1d212a; --border: #2a2f3a;
+      --text: #e7e9ee; --muted: #98a1b0; --accent: #3b8cff; --accent-text: #fff;
+      --ok: #3fb950; --warn: #d29922; --danger: #f06a6a; --focus: #7fb2ff;
+      --radius: 14px; color-scheme: dark;
+    }
+    :root[data-theme="light"] {
+      --bg: #f5f6f8; --surface: #fff; --surface-2: #f0f2f5; --border: #dde1e7;
+      --text: #171a20; --muted: #5d6675; --accent: #1f6fe5; --ok: #1a7f37; --warn: #9a6700;
+      --danger: #c62828; --focus: #1f6fe5; color-scheme: light;
+    }
+    @media (prefers-color-scheme: light) {
+      :root[data-theme="auto"] {
+        --bg: #f5f6f8; --surface: #fff; --surface-2: #f0f2f5; --border: #dde1e7;
+        --text: #171a20; --muted: #5d6675; --accent: #1f6fe5; --ok: #1a7f37; --warn: #9a6700;
+        --danger: #c62828; --focus: #1f6fe5; color-scheme: light;
+      }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    main { max-width: 760px; margin: 0 auto; padding: 24px 16px 64px; }
+    a { color: var(--accent); }
+    .back { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); text-decoration: none; font-size: 14px; margin-right: 16px; }
+    .back:hover { color: var(--text); }
+    h1 { font-size: 26px; margin: 12px 0 4px; letter-spacing: -0.01em; }
+    h2 { font-size: 17px; margin: 0 0 2px; overflow-wrap: anywhere; }
+    .lede { color: var(--muted); margin: 0 0 20px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+    .sub { color: var(--muted); margin: 0 0 12px; font-size: 14px; overflow-wrap: anywhere; }
+    .notice { border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; border: 1px solid var(--border); background: var(--surface); overflow-wrap: anywhere; }
+    .notice.warn { border-color: color-mix(in srgb, var(--warn) 55%, var(--border)); }
+    .notice.error { border-color: color-mix(in srgb, var(--danger) 55%, var(--border)); }
+    .notice.ok { border-color: color-mix(in srgb, var(--ok) 55%, var(--border)); }
+    .notice strong { display: block; margin-bottom: 2px; }
+    .notice ul { margin: 6px 0 0; padding-left: 20px; }
+    dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 0; font-size: 14px; }
+    dt { color: var(--muted); }
+    dd { margin: 0; overflow-wrap: anywhere; }
+    .lbl { display: block; font-weight: 600; font-size: 14px; margin: 16px 0 6px; }
+    .help { color: var(--muted); font-size: 13px; margin-top: 6px; }
+    textarea { width: 100%; background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; font: inherit; resize: vertical; min-height: 72px; }
+    textarea:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 16px; }
+    button.btn { font: inherit; font-size: 14px; font-weight: 600; border-radius: 10px; padding: 9px 16px; cursor: pointer; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); }
+    button.btn:hover { border-color: var(--muted); }
+    button.btn.stop { background: var(--danger); border-color: var(--danger); color: #fff; }
+    button.btn:disabled { opacity: 0.55; cursor: default; }
+    .badge { display: inline-block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; margin-left: 6px; vertical-align: middle; }
+    .row { display: block; text-decoration: none; color: inherit; }
+    .row:hover .card { border-color: var(--muted); }
+    .skeleton { height: 160px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--border); }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+<main>
+  <a class="back" href="/admin">← Back to Silo</a><a class="back" id="toGotify" href="../"><img id="surifyMark" alt="Surify" width="48" height="44" style="object-fit:contain;vertical-align:middle;border-radius:6px"> Surify settings</a>
+  <h1 id="heading">Live streams</h1>
+  <p class="lede" id="lede">Who is streaming right now. Open a stream to stop it.</p>
+  <div id="notice" role="status" aria-live="polite"></div>
+  <div id="app"><div class="skeleton"></div></div>
+</main>
+
+<script>
+(() => {
+  const root = document.documentElement;
+  if (root.dataset.theme === "auto") {
+    const t = (new URLSearchParams(location.search).get("theme") || "").toLowerCase();
+    if (t) root.dataset.theme = t.includes("light") ? "light" : "dark";
+  }
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  // The page is served at <plugin>/admin/sessions[/<id>]; API calls go to
+  // <plugin>/api/admin/sessions.
+  const m = location.pathname.match(/^(.*\/)admin\/sessions(?:\/([^/]+))?\/?$/);
+  const base = m ? m[1] : "../../";
+  let sessionId = "";
+  try { sessionId = m && m[2] ? decodeURIComponent(m[2]) : ""; } catch { sessionId = ""; }
+  const apiBase = base + "api/admin/sessions";
+  $("#toGotify").href = base;
+ $("#surifyMark").src = base + "assets/surify.webp";
+
+  let expired = false;
+
+  async function api(path, method = "GET", body) {
+    const opts = { method, credentials: "same-origin", headers: { Accept: "application/json" } };
+    if (body !== undefined) {
+      opts.headers["Content-Type"] = "application/json";
+      opts.body = JSON.stringify(body);
+    }
+    let res;
+    try { res = await fetch(path, opts); } catch { throw new Error("Couldn't reach Silo. Check your connection and try again."); }
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401) { sessionExpired(); throw Object.assign(new Error(data.message || "Session expired."), { code: "unauthenticated" }); }
+    if (!res.ok) {
+      const err = new Error(data.message || `Request failed (${res.status}).`);
+      err.code = data.code || "";
+      throw err;
+    }
+    return data;
+  }
+
+  function notice(kind, title, details) {
+    const list = (details || []).filter(Boolean);
+    $("#notice").innerHTML = title
+      ? `<div class="notice ${kind}"><strong>${esc(title)}</strong>${list.length === 1 ? esc(list[0]) : list.length ? `<ul>${list.map((d) => `<li>${esc(d)}</li>`).join("")}</ul>` : ""}</div>`
+      : "";
+  }
+
+  function sessionExpired() {
+    expired = true;
+    notice("warn", "This page's sign-in has expired.", ["For security it only lasts a few minutes. Open Surify from the Silo sidebar, then Live streams in its admin section."]);
+    document.querySelectorAll("button, textarea").forEach((e) => (e.disabled = true));
+  }
+
+  function controlKeyMissing() {
+    return `<div class="notice warn"><strong>Stopping streams isn't set up.</strong>It needs the plugin's stream-control key (scope admin:sessions:control). Open <a href="${esc(base)}">Surify</a> and, in the Silo keys section, set up the key with “Also allow stopping streams” ticked.</div>`;
+  }
+
+  function facts(s) {
+    const rows = [
+      ["User", s.user],
+      ["Episode", s.episode && s.episode !== s.title ? s.episode : ""],
+      ["Type", s.media_type],
+      ["Device", s.device],
+      ["App", s.client],
+      ["Where", [s.location, s.ip].filter(Boolean).join(" · ")],
+      ["Playback", [s.method, s.video, s.bitrate].filter(Boolean).join(" · ")],
+      ["Position", [s.position, s.duration ? `of ${s.duration}` : "", s.progress ? `(${s.progress})` : ""].filter(Boolean).join(" ")],
+      ["State", s.paused ? "Paused" : "Playing"],
+    ];
+    return `<dl>${rows.filter(([, v]) => v).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>`;
+  }
+
+  async function loadList() {
+    let data;
+    try { data = await api(apiBase); } catch (e) { if (!expired) showError(e); return; }
+    const items = data.sessions || [];
+    $("#app").innerHTML = (data.control_key_set ? "" : controlKeyMissing()) + (items.length
+      ? items.map((s) => `<a class="row" href="${esc(base + "admin/sessions/" + encodeURIComponent(s.session_id))}"><section class="card">
+          <h2>${esc(s.title)}${s.paused ? '<span class="badge">Paused</span>' : ""}</h2>
+          <p class="sub">${esc([s.user, s.device, s.location].filter(Boolean).join(" · "))}</p></section></a>`).join("")
+      : `<div class="notice"><strong>Nobody is streaming right now.</strong></div>`)
+      + `<div class="actions"><button class="btn" type="button" id="refresh">Refresh</button></div>`;
+    $("#refresh").addEventListener("click", () => { notice(); loadList(); });
+  }
+
+  async function loadOne() {
+    $("#heading").textContent = "Stop a stream";
+    $("#lede").innerHTML = `Opening this page doesn't change anything; nothing stops until you press a button. <a href="${esc(base + "admin/sessions")}">All live streams</a>`;
+    let data;
+    try { data = await api(apiBase + "/" + encodeURIComponent(sessionId)); } catch (e) { if (!expired) showError(e); return; }
+    if (data.ended || !data.session) { showEnded(); return; }
+    const s = data.session;
+    const canStop = data.control_key_set;
+    $("#app").innerHTML = `${canStop ? "" : controlKeyMissing()}
+      <section class="card" aria-labelledby="title">
+        <h2 id="title">${esc(s.title)}</h2>
+        <p class="sub">${esc(s.user)}</p>
+        ${facts(s)}
+        <div id="msgBox" hidden>
+          <label class="lbl" for="msg">Message to show on the player</label>
+          <textarea id="msg" maxlength="1000" placeholder="For example: The server needs a restart, please try again in 10 minutes."></textarea>
+          <div class="help">${s.can_message ? "Shown on the player for a moment, then the stream stops." : "This player may not be able to show messages. The stream stops either way."}</div>
+        </div>
+        <div class="actions">
+          <button class="btn stop" type="button" id="stopBtn"${canStop ? "" : " disabled"}>Stop</button>
+          <button class="btn" type="button" id="msgBtn"${canStop ? "" : " disabled"}>Stop with message</button>
+          <button class="btn" type="button" id="cancelMsg" hidden>Cancel</button>
+        </div>
+      </section>`;
+    let withMessage = false;
+    const setMode = (on) => {
+      withMessage = on;
+      $("#msgBox").hidden = !on;
+      $("#cancelMsg").hidden = !on;
+      $("#msgBtn").hidden = on;
+      $("#stopBtn").textContent = on ? "Send message and stop" : "Stop";
+      if (on) $("#msg").focus();
+    };
+    $("#msgBtn").addEventListener("click", () => setMode(true));
+    $("#cancelMsg").addEventListener("click", () => setMode(false));
+    $("#stopBtn").addEventListener("click", () => stop(s, withMessage));
+  }
+
+  async function stop(s, withMessage) {
+    const body = {};
+    if (withMessage) {
+      const text = $("#msg").value.trim();
+      if (!text) { notice("error", "Write a message first, or use Stop.", []); $("#msg").focus(); return; }
+      body.message = text;
+    }
+    if (!confirm(`Stop ${s.user}'s stream of ${s.title}?`)) return;
+    document.querySelectorAll("#app button, #app textarea").forEach((e) => (e.disabled = true));
+    notice("", "Stopping the stream…", []);
+    let res;
+    try {
+      res = await api(apiBase + "/" + encodeURIComponent(sessionId) + "/stop", "POST", body);
+    } catch (e) {
+      if (expired) return;
+      if (e.code === "session_ended") { showEnded(); return; }
+      notice("error", "The stream wasn't stopped.", [e.message]);
+      if (e.code !== "silo_timeout") document.querySelectorAll("#app button, #app textarea").forEach((el) => (el.disabled = false));
+      return;
+    }
+    notice(res.level === "warn" ? "warn" : "ok", res.title || "Stream stopped.", res.details || []);
+  }
+
+  function showEnded() {
+    $("#app").innerHTML = `<div class="notice"><strong>This stream has already ended.</strong>It isn't in Silo's list of live streams any more. <a href="${esc(base + "admin/sessions")}">See who's streaming now</a></div>`;
+  }
+
+  function showError(e) {
+    const keyFix = e.code && e.code.startsWith("monitor_key_");
+    $("#app").innerHTML = `<div class="notice error"><strong>${keyFix ? "The read-only Silo key needs attention." : "Couldn't load the stream."}</strong>${esc(e.message)}
+      <div class="actions"><button class="btn" type="button" id="retry">Try again</button></div></div>`;
+    $("#retry").addEventListener("click", () => { $("#app").innerHTML = '<div class="skeleton"></div>'; sessionId ? loadOne() : loadList(); });
+  }
+
+  if (sessionId) loadOne(); else loadList();
+})();
+</script>
+</body>
+</html>

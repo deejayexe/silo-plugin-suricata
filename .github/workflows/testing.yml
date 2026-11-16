@@ -1,0 +1,125 @@
+name: Suricata testing
+
+on:
+  push:
+    branches: ["0.0.1"]
+    paths-ignore: ["manifest.json", "repository.json", "docs/**", "**/*.md"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: suricata-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        plugin: [surimatrix, surify, duplicata]
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: plugins/${{ matrix.plugin }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16
+        with:
+          go-version: "1.27.4"
+          cache-dependency-path: plugins/${{ matrix.plugin }}/go.sum
+      - name: Test and inspect
+        env:
+          PLUGIN: ${{ matrix.plugin }}
+          GOWORK: "off"
+        run: |
+          flags=()
+          if [ "$PLUGIN" = surimatrix ]; then flags=(-tags goolm); fi
+          go test -race "${flags[@]}" ./...
+          go vet "${flags[@]}" ./...
+          if [ "$PLUGIN" = duplicata ]; then
+            node --check internal/review/web/app.js
+            python3 -m unittest discover -s tests -v
+          fi
+          git diff --exit-code -- go.mod go.sum
+      - name: Build installation candidate
+        env:
+          PLUGIN: ${{ matrix.plugin }}
+          BUILD_NUMBER: ${{ github.run_id }}.${{ github.run_attempt }}
+        run: |
+          flags=()
+          export CGO_ENABLED=0
+          if [ "$PLUGIN" = surimatrix ]; then flags=(-tags goolm); export CGO_ENABLED=1; fi
+          base=$(python3 -c 'import json; print(json.load(open("manifest.json"))["version"])')
+          if [ "$PLUGIN" = duplicata ]; then base=0.1.1; fi
+          version="$base-dev.$BUILD_NUMBER"
+          arch=$(go env GOARCH)
+          mkdir -p ../../dist
+          go build "${flags[@]}" -trimpath -ldflags="-s -w -X main.version=$version" -o "../../dist/$PLUGIN-linux-$arch" .
+          "../../dist/$PLUGIN-linux-$arch" manifest > ../../dist/runtime-manifest.json
+          python3 - "$version" <<'PY'
+          import json, sys
+          from pathlib import Path
+          actual = json.loads(Path('../../dist/runtime-manifest.json').read_text())
+          expected = json.loads(Path('manifest.json').read_text())
+          assert actual['plugin_id'] == expected['plugin_id']
+          assert actual['version'] == sys.argv[1]
+          assert actual['presentation'] == expected['presentation']
+          PY
+          rm ../../dist/runtime-manifest.json
+          if [ "$PLUGIN" = surify ] && [ "$arch" = amd64 ]; then
+            GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=$version" -o ../../dist/surify-darwin-arm64 .
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.plugin }}-${{ matrix.runner }}
+          path: dist/*
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    if: github.ref == 'refs/heads/0.0.1' && github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16
+        with:
+          go-version: "1.27.4"
+          cache-dependency-path: plugins/surify/go.sum
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+          path: dist
+      - name: Generate and validate combined catalog
+        env:
+          BUILD_NUMBER: ${{ github.run_id }}.${{ github.run_attempt }}
+          RELEASE_TAG: testing-0.0.1-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          python3 -m unittest discover -s tests -v
+          python3 scripts/catalog.py --repo "$GITHUB_REPOSITORY" --tag "$RELEASE_TAG" --build-number "$BUILD_NUMBER"
+          cd plugins/surify
+          go run ./cmd/catalogcheck ../../dist/manifest.json
+      - name: Publish testing packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: testing-0.0.1-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          gh release create "$RELEASE_TAG" --prerelease --latest=false --target "$GITHUB_SHA" --title "Suricata 0.0.1 testing" --notes "Three-plugin testing catalog from $GITHUB_SHA. Source branch: 0.0.1. Validate in Silo before promoting to main." dist/*
+      - name: Publish catalog only on testing branch
+        run: |
+          git fetch origin 0.0.1
+          test "$(git rev-parse origin/0.0.1)" = "$GITHUB_SHA"
+          cp dist/manifest.json manifest.json
+          cp dist/repository.json repository.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add manifest.json repository.json
+          git commit -m "Publish validated Suricata testing catalog"
+          git push origin HEAD:refs/heads/0.0.1

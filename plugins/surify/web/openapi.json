@@ -1,0 +1,1644 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Surify API",
+    "version": "0.0.1",
+    "description": "Administrator-only API through the Silo plugin proxy. Every page and endpoint requires an administrator on their primary profile, including state, API documentation, connection checks and tests. Only the active administrator connection can be managed. Silo strips user-supplied identity headers. Background delivery requires admin:monitor:read and a fresh check that recipients remain enabled administrators. The recently_added scheduled task offers opt-in library.added alerts with cursor-based first-seen detection; optional URL artwork uses Gotify Markdown and Android big images. Live-stream pages redirect to /admin/activity; legacy control endpoints remain for compatibility."
+  },
+  "servers": [
+    {
+      "url": "..",
+      "description": "The plugin's base URL, relative to this document: /api/v2/plugin-content/plugins/{installation_id}/"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "profiles",
+      "description": "Active administrator connection and inbox notification settings"
+    },
+    {
+      "name": "admin",
+      "description": "Admin alerts (acting admins only)"
+    },
+    {
+      "name": "sessions",
+      "description": "Live streams and stopping them (admins only)"
+    },
+    {
+      "name": "keys",
+      "description": "Setting up the plugin's scoped Silo keys (admins only)"
+    },
+    {
+      "name": "meta",
+      "description": "This document"
+    }
+  ],
+  "paths": {
+    "/api/openapi.json": {
+      "get": {
+        "tags": [
+          "meta"
+        ],
+        "operationId": "getOpenAPI",
+        "summary": "This OpenAPI document",
+        "responses": {
+          "200": {
+            "description": "OpenAPI 3.1 document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Administrator primary profile required"
+          }
+        }
+      }
+    },
+    "/api/state": {
+      "get": {
+        "tags": [
+          "profiles"
+        ],
+        "operationId": "getState",
+        "summary": "Start-up state: notification types, sounds, profiles you may manage, admin flag",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ProfileId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "State. A setup problem is reported in problem, not as an error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/State"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Administrator primary profile required"
+          }
+        }
+      }
+    },
+    "/api/profiles/{profile_id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/ProfileId"
+        },
+        {
+          "$ref": "#/components/parameters/PathProfileId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "profiles"
+        ],
+        "operationId": "getProfile",
+        "summary": "One profile's settings (keys come back only as hints)",
+        "responses": {
+          "200": {
+            "description": "Settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileView"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Administrator primary profile required"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "profiles"
+        ],
+        "operationId": "putProfile",
+        "summary": "Save a profile's settings (send the whole object)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "profile": {
+                      "$ref": "#/components/schemas/ProfileView"
+                    },
+                    "warning": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Administrator primary profile required"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "profiles"
+        ],
+        "operationId": "deleteProfile",
+        "summary": "Remove a profile's Gotify settings",
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Ok"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Administrator primary profile required"
+          }
+        }
+      }
+    },
+    "/api/profiles/{profile_id}/test": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/ProfileId"
+        },
+        {
+          "$ref": "#/components/parameters/PathProfileId"
+        }
+      ],
+      "post": {
+        "tags": [
+          "profiles"
+        ],
+        "operationId": "testProfile",
+        "summary": "Send a sample notification with unsaved settings",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "settings",
+                  "type"
+                ],
+                "properties": {
+                  "settings": {
+                    "$ref": "#/components/schemas/ProfileInput"
+                  },
+                  "type": {
+                    "$ref": "#/components/schemas/NotificationTypeKey"
+                  },
+                  "group": {
+                    "type": "boolean",
+                    "description": "Send the grouped season-drop wording (episode.available only)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Ok"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Administrator primary profile required"
+          }
+        }
+      }
+    },
+    "/api/profiles/{profile_id}/validate": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/ProfileId"
+        },
+        {
+          "$ref": "#/components/parameters/PathProfileId"
+        }
+      ],
+      "post": {
+        "tags": [
+          "profiles"
+        ],
+        "operationId": "validateProfileKeys",
+        "summary": "Check Gotify server version without sending a message. Does not validate the application token; devices and sounds are empty.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "server_url": {
+                    "type": "string",
+                    "description": "Empty uses the saved key"
+                  },
+                  "app_token": {
+                    "type": "string",
+                    "description": "Empty uses the saved or shared token"
+                  },
+                  "clear_app_token": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The key pair works",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "devices": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "sounds": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Option"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Administrator primary profile required"
+          }
+        }
+      }
+    },
+    "/api/admin/alerts": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/ProfileId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "operationId": "getAdminAlerts",
+        "summary": "Your admin alert settings and what the page needs to draw them",
+        "responses": {
+          "200": {
+            "description": "Settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminAlertsResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Administrator primary profile required"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "admin"
+        ],
+        "operationId": "putAdminAlerts",
+        "summary": "Save your admin alert settings (send the whole object; missing fields reset)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminSettings"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "settings": {
+                      "$ref": "#/components/schemas/AdminSettings"
+                    },
+                    "warning": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Administrator primary profile required"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "admin"
+        ],
+        "operationId": "deleteAdminAlerts",
+        "summary": "Remove your admin alert settings",
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Ok"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Administrator primary profile required"
+          }
+        }
+      }
+    },
+    "/api/admin/alerts/test": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/ProfileId"
+        }
+      ],
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "operationId": "testAdminAlert",
+        "summary": "Send a sample admin alert with unsaved settings (emergency goes out as high; quiet hours ignored)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "settings",
+                  "alert"
+                ],
+                "properties": {
+                  "settings": {
+                    "$ref": "#/components/schemas/AdminSettings"
+                  },
+                  "alert": {
+                    "$ref": "#/components/schemas/AlertKey"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Ok"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Administrator primary profile required"
+          }
+        }
+      }
+    },
+    "/api/admin/users": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/ProfileId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "operationId": "listAdminUsers",
+        "summary": "Accounts, for the users-to-ignore filter",
+        "responses": {
+          "200": {
+            "description": "Accounts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "users": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "username": {
+                            "type": "string"
+                          },
+                          "role": {
+                            "type": "string"
+                          },
+                          "enabled": {
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Administrator primary profile required"
+          }
+        }
+      }
+    },
+    "/api/admin/sessions": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/ProfileId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "operationId": "listLiveStreams",
+        "summary": "Live streams, newest first",
+        "responses": {
+          "200": {
+            "description": "Streams",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sessions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/LiveSession"
+                      }
+                    },
+                    "control_key_set": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Administrator primary profile required"
+          }
+        }
+      }
+    },
+    "/api/admin/sessions/{session_id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/ProfileId"
+        },
+        {
+          "$ref": "#/components/parameters/SessionId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "operationId": "getLiveStream",
+        "summary": "One live stream; ended is true once it's gone",
+        "responses": {
+          "200": {
+            "description": "Stream",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "session": {
+                      "oneOf": [
+                        {
+                          "$ref": "#/components/schemas/LiveSession"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "ended": {
+                      "type": "boolean"
+                    },
+                    "control_key_set": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Administrator primary profile required"
+          }
+        }
+      }
+    },
+    "/api/admin/sessions/{session_id}/stop": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/ProfileId"
+        },
+        {
+          "$ref": "#/components/parameters/SessionId"
+        }
+      ],
+      "post": {
+        "tags": [
+          "sessions"
+        ],
+        "operationId": "stopLiveStream",
+        "summary": "Stop a stream with the stream-control key; with a message, the player shows it first",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Result"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Administrator primary profile required"
+          }
+        }
+      }
+    },
+    "/api/admin/key-setup": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/ProfileId"
+        }
+      ],
+      "post": {
+        "tags": [
+          "keys"
+        ],
+        "operationId": "setUpKeys",
+        "summary": "Create the plugin's scoped Silo keys from a full-access key; can revoke that key",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "source": {
+                    "type": "string",
+                    "enum": [
+                      "paste",
+                      "legacy"
+                    ],
+                    "default": "paste",
+                    "description": "legacy uses the key saved by 0.2.0 and always revokes it"
+                  },
+                  "key": {
+                    "type": "string",
+                    "description": "Full-access Silo API key (sa_...), for source paste"
+                  },
+                  "revoke": {
+                    "type": "boolean",
+                    "description": "Revoke the pasted key once the new key is saved"
+                  },
+                  "control": {
+                    "type": "boolean",
+                    "description": "Also create an admin:sessions:control key"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "What was created, saved and revoked. Never contains a key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "saved": {
+                      "type": "boolean"
+                    },
+                    "level": {
+                      "type": "string",
+                      "enum": [
+                        "ok",
+                        "warn"
+                      ]
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "keys": {
+                      "$ref": "#/components/schemas/AdminKeys"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Administrator primary profile required"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Silo administrator authentication on the primary profile; ordinary accounts and secondary profiles are forbidden."
+      }
+    },
+    "parameters": {
+      "ProfileId": {
+        "name": "X-Profile-Id",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "The authenticated administrator account's primary profile. Required on every endpoint."
+      },
+      "PathProfileId": {
+        "name": "profile_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "SessionId": {
+        "name": "session_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "responses": {
+      "Error": {
+        "description": "Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Ok": {
+        "description": "Done",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Result": {
+        "description": "Result",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "type": "boolean"
+                },
+                "level": {
+                  "type": "string",
+                  "enum": [
+                    "ok",
+                    "warn"
+                  ]
+                },
+                "title": {
+                  "type": "string"
+                },
+                "details": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "examples": [
+              "no_profile",
+              "forbidden",
+              "invalid",
+              "monitor_key_missing",
+              "monitor_key_rejected",
+              "monitor_key_scope",
+              "gotify_rejected",
+              "session_ended",
+              "unsupported_media_type"
+            ]
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "Option": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      },
+      "NotificationTypeKey": {
+        "type": "string",
+        "enum": [
+          "episode.available",
+          "request.approved",
+          "request.declined",
+          "request.fulfilled",
+          "other"
+        ]
+      },
+      "AlertKey": {
+        "type": "string",
+        "enum": [
+          "stream.started",
+          "stream.paused",
+          "stream.stopped",
+          "playback.failed",
+          "streams.user",
+          "streams.server",
+          "bandwidth",
+          "device.new",
+          "ip.new",
+          "scan.failed",
+          "job.failed",
+          "health",
+          "health.recovered",
+          "digest.weekly"
+        ]
+      },
+      "Priority": {
+        "type": "integer",
+        "minimum": -2,
+        "maximum": 1,
+        "description": "-2 lowest, -1 low (no sound), 0 normal, 1 high"
+      },
+      "AlertPriority": {
+        "type": "integer",
+        "minimum": -2,
+        "maximum": 2,
+        "description": "As Priority, plus 2: urgent, delivered once as Gotify priority 10"
+      },
+      "QuietHours": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "start": {
+            "type": "string",
+            "pattern": "^\\d\\d:\\d\\d$",
+            "examples": [
+              "22:00"
+            ]
+          },
+          "end": {
+            "type": "string",
+            "pattern": "^\\d\\d:\\d\\d$",
+            "examples": [
+              "07:00"
+            ]
+          },
+          "silence_emergency": {
+            "type": "boolean",
+            "description": "Also turn emergency admin alerts down. Kept only on an admin's own profile."
+          }
+        }
+      },
+      "TypeSettings": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "title": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "sound": {
+            "type": "string",
+            "description": "Unsupported by Gotify; leave empty.",
+            "enum": [
+              ""
+            ]
+          },
+          "priority": {
+            "$ref": "#/components/schemas/Priority"
+          },
+          "group_title": {
+            "type": "string",
+            "description": "episode.available only"
+          },
+          "group_message": {
+            "type": "string",
+            "description": "episode.available only"
+          }
+        }
+      },
+      "ProfileCommon": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "device": {
+            "type": "string",
+            "description": "Unsupported by Gotify; leave empty.",
+            "enum": [
+              ""
+            ]
+          },
+          "sound": {
+            "type": "string",
+            "description": "Unsupported by Gotify; leave empty.",
+            "enum": [
+              ""
+            ]
+          },
+          "priority": {
+            "$ref": "#/components/schemas/Priority"
+          },
+          "html": {
+            "type": "boolean",
+            "description": "Unsupported by Gotify; always false.",
+            "enum": [
+              false
+            ]
+          },
+          "attach_poster": {
+            "type": "boolean",
+            "description": "Unsupported by Gotify; always false.",
+            "enum": [
+              false
+            ]
+          },
+          "include_link": {
+            "type": "boolean"
+          },
+          "types": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/TypeSettings"
+            }
+          },
+          "episode_reasons": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "favorite",
+                "watchlist",
+                "continue_watching",
+                "next_up"
+              ]
+            },
+            "description": "Empty means every episode"
+          },
+          "group_minutes": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 120,
+            "description": "0 is off"
+          },
+          "quiet": {
+            "$ref": "#/components/schemas/QuietHours"
+          },
+          "time_zone": {
+            "type": "string",
+            "description": "IANA name; empty on save keeps the saved one"
+          },
+          "admin_managed": {
+            "type": "boolean",
+            "readOnly": true,
+            "description": "Activated by an administrator save after the admin-only upgrade. Cannot be set by the client."
+          }
+        }
+      },
+      "ProfileInput": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ProfileCommon"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "server_url": {
+                "type": "string",
+                "description": "New Gotify user or group key; empty keeps the saved one"
+              },
+              "app_token": {
+                "type": "string",
+                "description": "The profile's own application token; empty keeps the saved one"
+              },
+              "clear_app_token": {
+                "type": "boolean",
+                "description": "Remove the profile's own token and use the server's shared one"
+              }
+            }
+          }
+        ]
+      },
+      "ProfileView": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ProfileCommon"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "profile_id": {
+                "type": "string"
+              },
+              "profile_name": {
+                "type": "string"
+              },
+              "configured": {
+                "type": "boolean"
+              },
+              "server_url_hint": {
+                "type": "string"
+              },
+              "app_token_hint": {
+                "type": "string"
+              },
+              "episode_reason_options": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Option"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "NotificationType": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/NotificationTypeKey"
+          },
+          "label": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "default_title": {
+            "type": "string"
+          },
+          "default_message": {
+            "type": "string"
+          },
+          "default_enabled": {
+            "type": "boolean"
+          },
+          "placeholders": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sample": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "default_group_title": {
+            "type": "string"
+          },
+          "default_group_message": {
+            "type": "string"
+          },
+          "group_placeholders": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "group_sample": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "AdminKeys": {
+        "type": "object",
+        "properties": {
+          "monitor_key_set": {
+            "type": "boolean"
+          },
+          "control_key_set": {
+            "type": "boolean"
+          },
+          "legacy_key_stored": {
+            "type": "boolean"
+          }
+        }
+      },
+      "State": {
+        "type": "object",
+        "properties": {
+          "types": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationType"
+            }
+          },
+          "sounds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Option"
+            }
+          },
+          "has_default_token": {
+            "type": "boolean"
+          },
+          "profiles": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "active": {
+                  "type": "boolean"
+                },
+                "configured": {
+                  "type": "boolean"
+                },
+                "enabled": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "household": {
+            "type": "string",
+            "enum": [
+              "all",
+              "configured",
+              "self"
+            ]
+          },
+          "admin": {
+            "type": "boolean",
+            "description": "The viewer is an acting admin (primary profile of an admin account)"
+          },
+          "admin_keys": {
+            "$ref": "#/components/schemas/AdminKeys"
+          },
+          "notice": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "level": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          },
+          "problem": {
+            "$ref": "#/components/schemas/Error"
+          }
+        }
+      },
+      "AlertSettings": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 1024
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "sound": {
+            "type": "string",
+            "description": "Unsupported by Gotify; leave empty.",
+            "enum": [
+              ""
+            ]
+          },
+          "priority": {
+            "$ref": "#/components/schemas/AlertPriority"
+          }
+        }
+      },
+      "AdminSettings": {
+        "type": "object",
+        "properties": {
+          "alerts": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AlertSettings"
+            },
+            "description": "Keyed by AlertKey"
+          },
+          "filters": {
+            "type": "object",
+            "properties": {
+              "ignore_users": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Account IDs"
+              },
+              "only_remote": {
+                "type": "boolean"
+              },
+              "only_transcodes": {
+                "type": "boolean"
+              },
+              "media_types": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "libraries": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Library IDs"
+              }
+            }
+          },
+          "noise": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "every",
+                  "cooldown",
+                  "binge"
+                ]
+              },
+              "window_minutes": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1440
+              }
+            }
+          },
+          "limits": {
+            "type": "object",
+            "properties": {
+              "user_streams": {
+                "type": "integer"
+              },
+              "server_streams": {
+                "type": "integer"
+              },
+              "bandwidth_mbps": {
+                "type": "integer"
+              },
+              "bandwidth_remote_only": {
+                "type": "boolean"
+              },
+              "disk_pct": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 99,
+                "description": "0 is off"
+              },
+              "memory_pct": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 99,
+                "description": "0 is off"
+              }
+            }
+          },
+          "quiet": {
+            "$ref": "#/components/schemas/QuietHours",
+            "description": "Deprecated: admin alerts follow the quiet hours of the admin's profile. Used only while that profile has none."
+          },
+          "time_zone": {
+            "type": "string",
+            "description": "IANA name for the digest schedule; empty on save keeps the saved one"
+          },
+          "digest": {
+            "type": "object",
+            "properties": {
+              "day": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6,
+                "description": "0 is Sunday"
+              },
+              "hour": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 23
+              }
+            }
+          },
+          "attach_poster": {
+            "type": "boolean",
+            "description": "Unsupported by Gotify; always false.",
+            "enum": [
+              false
+            ]
+          },
+          "silo_link": {
+            "type": "boolean",
+            "description": "\"Open in Silo\" link to /admin/activity on stream alerts"
+          },
+          "recent_since": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "description": "Server-owned activation time for the library.added alert; retained through unrelated settings changes."
+          }
+        }
+      },
+      "AdminAlertsResponse": {
+        "type": "object",
+        "properties": {
+          "configured": {
+            "type": "boolean"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/AdminSettings"
+          },
+          "gotify_ready": {
+            "type": "boolean"
+          },
+          "gotify_message": {
+            "type": "string"
+          },
+          "alert_types": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "$ref": "#/components/schemas/AlertKey"
+                },
+                "group": {
+                  "type": "string",
+                  "enum": [
+                    "playback",
+                    "watchdog",
+                    "server",
+                    "scheduled"
+                  ]
+                },
+                "label": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "default_title": {
+                  "type": "string"
+                },
+                "default_message": {
+                  "type": "string"
+                },
+                "placeholders": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "noise_controlled": {
+                  "type": "boolean"
+                },
+                "limits": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "key": {
+                        "type": "string"
+                      },
+                      "label": {
+                        "type": "string"
+                      },
+                      "unit": {
+                        "type": "string"
+                      },
+                      "max": {
+                        "type": "integer"
+                      },
+                      "optional": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                },
+                "parent": {
+                  "type": "string"
+                },
+                "sample": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "noise_modes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Option"
+            }
+          },
+          "media_types": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Option"
+            }
+          },
+          "libraries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "sounds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Option"
+            }
+          }
+        }
+      },
+      "LiveSession": {
+        "type": "object",
+        "properties": {
+          "session_id": {
+            "type": "string"
+          },
+          "user": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "episode": {
+            "type": "string"
+          },
+          "media_type": {
+            "type": "string"
+          },
+          "device": {
+            "type": "string",
+            "description": "Unsupported by Gotify; leave empty.",
+            "enum": [
+              ""
+            ]
+          },
+          "client": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "ip": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "video": {
+            "type": "string"
+          },
+          "bitrate": {
+            "type": "string"
+          },
+          "position": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "string"
+          },
+          "progress": {
+            "type": "string"
+          },
+          "paused": {
+            "type": "boolean"
+          },
+          "started_at": {
+            "type": "string"
+          },
+          "can_message": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

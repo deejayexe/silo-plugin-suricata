@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Surify · Silo</title>
+  <link rel="icon" type="image/png" href="assets/surify.webp">
+  <style>
+    [hidden] { display: none !important; }
+    :root {
+      --bg: #0e1014; --surface: #161920; --surface-2: #1d212a; --border: #2a2f3a;
+      --text: #e7e9ee; --muted: #a3abb8; --accent: #ffb32c; --accent-strong: #a44700; --accent-text: #fff;
+      --ok: #3fb950; --warn: #e0a82e; --danger: #f06a6a; --focus: #ffb32c; --sel: rgba(255,167,36,.14);
+      --radius: 14px; color-scheme: dark;
+    }
+    :root[data-theme="light"] {
+      --bg: #f5f6f8; --surface: #fff; --surface-2: #f0f2f5; --border: #dde1e7;
+      --text: #171a20; --muted: #5a6372; --accent: #994000; --accent-strong: #994000; --ok: #1a7f37; --warn: #9a6700;
+      --danger: #c62828; --focus: #994000; --sel: rgba(188,79,0,.10); color-scheme: light;
+    }
+    @media (prefers-color-scheme: light) {
+      :root[data-theme="auto"] {
+        --bg: #f5f6f8; --surface: #fff; --surface-2: #f0f2f5; --border: #dde1e7;
+        --text: #171a20; --muted: #5a6372; --accent: #994000; --accent-strong: #994000; --ok: #1a7f37; --warn: #9a6700;
+        --danger: #c62828; --focus: #994000; --sel: rgba(188,79,0,.10); color-scheme: light;
+      }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    a { color: var(--accent); }
+    a:hover { color: var(--text); }
+    [hidden] { display: none !important; }
+    :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+    .shell { max-width: 1220px; margin: 0 auto; padding: 24px 24px 64px; display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; }
+    .rail { flex: 1 1 220px; max-width: 250px; display: flex; flex-direction: column; gap: 18px; position: sticky; top: 24px; }
+    .content { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+    @media (max-width: 760px) {
+      .shell { padding: 16px 16px 48px; gap: 18px; }
+      .rail { max-width: none; position: static; }
+      .navlist { flex-direction: row !important; flex-wrap: wrap; }
+      .navlist .nav { width: auto !important; }
+    }
+
+    .back { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); text-decoration: none; font-size: 14px; min-height: 32px; }
+    .back:hover { color: var(--text); }
+    .brand { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+    .brand-logo { width: 180px; height: auto; max-width: 100%; object-fit: contain; border-radius: 12px; }
+    .logo { width: 36px; height: 36px; border-radius: 10px; background: var(--accent-strong); color: #fff; display: flex; align-items: center; justify-content: center; flex: none; }
+    .brand b { display: block; font-size: 18px; }
+    .brand span { font-size: 12px; color: var(--muted); }
+    .railLabel { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+    .navlist { display: flex; flex-direction: column; gap: 4px; }
+    .nav { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px; padding: 0 12px; border-radius: 10px; border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 15px; cursor: pointer; text-align: left; }
+    .nav:hover { color: var(--text); }
+    .nav[aria-selected="true"] { background: var(--sel); color: var(--text); font-weight: 600; }
+    .nav .grow { flex-grow: 1; }
+    .badge { font-size: 11px; font-weight: 600; color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+    .railFoot { border-top: 1px solid var(--border); padding-top: 16px; display: flex; flex-direction: column; gap: 12px; font-size: 14px; }
+    .railFoot a { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+    .meter { font-size: 12px; color: var(--muted); }
+    .meter .row { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .meter .row b { color: var(--text); }
+    .meter .track { height: 6px; border-radius: 999px; background: var(--border); overflow: hidden; }
+    .meter .fill { height: 6px; background: var(--ok); }
+    .meter.low .fill { background: var(--warn); }
+
+    .head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 8px 0; }
+    .head h1 { margin: 0; font-size: 24px; letter-spacing: -0.01em; }
+    .head p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+    .saveRow { display: flex; align-items: center; gap: 12px; }
+    #saveMsg { font-size: 13px; color: var(--muted); }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+    .card h2 { margin: 0; font-size: 16px; }
+    .cardHead { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; }
+    .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+    .flexrow { display: flex; flex-wrap: wrap; gap: 4px 28px; align-items: center; }
+    .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .lbl { font-size: 13px; font-weight: 600; }
+    .help { color: var(--muted); font-size: 13px; }
+    .muted { color: var(--muted); }
+    .status-ok { color: var(--ok); }
+    .status-err { color: var(--danger); }
+
+    input[type="url"], input[type="text"], input[type="password"], input[type="number"], input[type="time"], select, textarea {
+      width: 100%; background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
+      border-radius: 10px; padding: 8px 10px; font: inherit; font-size: 14px; min-height: 40px;
+    }
+    textarea { resize: vertical; min-height: 64px; }
+    input.num { width: 84px; }
+    input[type="time"], select.auto { width: auto; }
+    .inline { display: inline-flex; gap: 8px; align-items: center; font-size: 14px; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); font: inherit; font-size: 14px; cursor: pointer; white-space: nowrap; text-decoration: none; }
+    .btn:hover { border-color: var(--muted); }
+    .btn.primary { background: var(--accent-strong); border-color: var(--accent-strong); color: var(--accent-text); font-weight: 600; }
+    .btn.ghost { background: transparent; border-color: transparent; color: var(--muted); }
+    .btn.ghost:hover { color: var(--text); }
+    .btn.icon { width: 40px; padding: 0; }
+    .btn.danger { color: var(--danger); }
+    .btn:disabled { opacity: .55; cursor: default; }
+    .link { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; font-size: 13px; cursor: pointer; }
+
+    .sw { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; min-height: 40px; }
+    .sw input { appearance: none; -webkit-appearance: none; width: 40px; height: 22px; border-radius: 999px; background: var(--border); position: relative; margin: 0; flex: none; cursor: pointer; }
+    .sw input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: left .15s; }
+    .sw input:checked { background: var(--accent-strong); }
+    .sw input:checked::after { left: 21px; }
+    .sw.sm { font-size: 13px; min-height: 32px; }
+
+    .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 12px; border: 1px solid var(--border); border-radius: 999px; font-size: 14px; cursor: pointer; background: var(--surface-2); }
+    .pill:has(input:checked) { border-color: var(--accent); background: var(--sel); }
+    .pill input { margin: 0; accent-color: var(--accent-strong); }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip { font: 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 999px; padding: 3px 9px; cursor: pointer; }
+    .chip:hover { border-color: var(--accent); color: var(--text); }
+
+    .rows > .item { border-top: 1px solid var(--border); padding: 10px 0; }
+    .rows > .item:first-child { border-top: 0; padding-top: 0; }
+    .itemHead { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+    .itemHead .sw { flex-grow: 1; }
+    .meta { font-size: 13px; color: var(--muted); }
+
+    .editor { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 12px; padding: 16px; border-radius: 12px; background: var(--surface-2); }
+    .editor .col { display: flex; flex-direction: column; gap: 10px; }
+    .editor input, .editor select, .editor textarea { background: var(--surface); }
+    .preview { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+    .preview .pt { font-weight: 600; font-size: 14px; }
+    .preview .pm { font-size: 14px; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+    .subtabs { display: inline-flex; gap: 4px; padding: 4px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); }
+    .subtab { min-height: 36px; padding: 0 16px; border-radius: 9px; border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 14px; cursor: pointer; }
+    .subtab[aria-selected="true"] { background: var(--accent-strong); color: #fff; font-weight: 600; }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); flex: none; }
+    .dot.warn { background: var(--warn); }
+    .dot.off { background: var(--border); }
+
+    .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+    .tile { display: flex; flex-direction: column; gap: 6px; padding: 8px 12px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface-2); }
+    .tile.open { border-color: var(--accent); background: var(--sel); }
+    .tile .top { display: flex; align-items: center; gap: 8px; }
+    .tile .top .sw { flex-grow: 1; min-width: 0; }
+    .tile .name { flex-grow: 1; font-size: 14px; min-height: 40px; display: inline-flex; align-items: center; }
+    .tile .meta { font-size: 12px; }
+    .tile label.inline { font-size: 13px; }
+    .tile input.num, .tile select { min-height: 34px; }
+
+    .modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+    .mode { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface-2); cursor: pointer; }
+    .mode:has(input:checked) { border-color: var(--accent); background: var(--sel); }
+    .mode input { margin: 3px 0 0; accent-color: var(--accent-strong); flex: none; }
+    .mode b { display: block; font-size: 14px; }
+    .mode span { font-size: 12px; color: var(--muted); }
+
+    .keyrow { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; }
+    .keyrow .grow { flex-grow: 1; }
+    .keyrow b { display: block; font-size: 14px; }
+    .keyrow small { font-size: 12px; color: var(--muted); }
+
+    .notice { border-radius: var(--radius); padding: 12px 16px; border: 1px solid var(--border); background: var(--surface); font-size: 14px; }
+    .notice strong { display: block; margin-bottom: 2px; }
+    .notice.warn { border-color: color-mix(in srgb, var(--warn) 55%, var(--border)); }
+    .notice.error { border-color: color-mix(in srgb, var(--danger) 55%, var(--border)); }
+    .notice.ok { border-color: color-mix(in srgb, var(--ok) 55%, var(--border)); }
+    .notice ul { margin: 6px 0 0; padding-left: 20px; }
+    .notice .actions { margin-top: 10px; }
+    .skeleton { height: 160px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--border); }
+    details > summary { cursor: pointer; color: var(--accent); font-size: 14px; width: fit-content; }
+    pre { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; overflow: auto; font: 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; margin: 8px 0 0; }
+    ol.help { padding-left: 20px; margin: 8px 0 0; }
+    .dangerZone { display: flex; justify-content: flex-end; }
+  </style>
+</head>
+<body>
+<div class="shell" id="shell">
+  <nav class="rail" aria-label="Surify administration">
+    <a class="back" href="/admin">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      Back to Silo
+    </a>
+    <div class="brand">
+      <img class="brand-logo" src="assets/surify.webp" width="180" height="165" alt="Surify — two meerkats with notification cards">
+      <span>Administrator notifications · Gotify</span>
+    </div>
+    <label class="railLabel" id="profilePick" hidden>Profile<select id="profileSelect"></select></label>
+    <div class="navlist" role="tablist" aria-orientation="vertical" id="navlist"></div>
+    <div class="railFoot" id="railFoot" hidden></div>
+  </nav>
+
+  <main class="content">
+    <div class="head">
+      <div><h1 id="tabTitle">Surify</h1><p id="tabSub"></p></div>
+      <div class="saveRow"><span id="saveMsg" role="status" aria-live="polite"></span><button class="btn primary" type="button" id="saveBtn" hidden>Save</button></div>
+    </div>
+    <div id="notice"></div>
+    <div id="panel-account" role="tabpanel" hidden></div>
+    <div id="panel-mine" role="tabpanel" hidden></div>
+    <div id="panel-admin" role="tabpanel" hidden></div>
+    <div id="panel-keys" role="tabpanel" hidden></div>
+    <div id="loading"><div class="skeleton"></div></div>
+  </main>
+</div>
+
+<script>
+(() => {
+  const root = document.documentElement;
+  if (root.dataset.theme === "auto") {
+    const t = (new URLSearchParams(location.search).get("theme") || "").toLowerCase();
+    if (t) root.dataset.theme = t.includes("light") ? "light" : "dark";
+  }
+
+  const PRIORITIES = [
+    { value: -2, label: "Lowest (Gotify 0)", short: "Lowest" },
+    { value: -1, label: "Low (Gotify 2)", short: "Low" },
+    { value: 0, label: "Normal (Gotify 5)", short: "Normal" },
+    { value: 1, label: "High (Gotify 8)", short: "High" },
+  ];
+  // Admin alerts may also be emergencies: Gotify delivers urgent alerts once at priority 10.
+  const ADMIN_PRIORITIES = [...PRIORITIES, { value: 2, label: "Urgent (Gotify 10, single delivery)", short: "Urgent" }];
+  const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const TABS = [
+    { id: "account", label: "Connection", sub: "Your administrator notification destination in Gotify." },
+    { id: "mine", label: "Inbox alerts", sub: "Notifications from your administrator account's Silo inbox." },
+    { id: "admin", label: "Server alerts", sub: "Playback, watchdog and server alerts delivered only to administrators.", admin: true },
+    { id: "keys", label: "Silo API keys", sub: "Scoped keys the plugin uses to read from Silo.", admin: true },
+  ];
+  const ALERT_GROUPS = [
+    { key: "playback", title: "Playback" },
+    { key: "watchdog", title: "Watchdog" },
+    { key: "server", title: "Server problems" },
+    { key: "scheduled", title: "Scheduled checks" },
+  ];
+  const NOISE = {
+    every: { title: "Every event", text: "Send each one." },
+    cooldown: { title: "Per-user cooldown", text: "One per person per alert type in the window.", window: "Cooldown" },
+    binge: { title: "Collapse binges", text: "One start per show, then quiet until they're idle for the window.", window: "Idle time" },
+  };
+  const KEY_PROBLEMS = {
+    monitor_key_missing: "Admin alerts need the read-only Silo key.",
+    monitor_key_rejected: "Silo rejected the saved read-only key (it may have been revoked), so admin alerts are paused.",
+    monitor_key_scope: "The saved read-only key can't look up accounts, so admin alerts are paused.",
+  };
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const ICON_EDIT = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`;
+  const ICON_SCREEN = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 22h8"/><path d="M12 18v4"/></svg>`;
+
+  let state = null, profileId = null, view = null, draft = null;
+  let devices = [], sounds = [], dirty = false, expired = false, tab = "account";
+  let openTypes = new Set(), lastField = null, lastGroupMinutes = 5;
+
+  async function api(path, method = "GET", body) {
+    const opts = { method, credentials: "same-origin", headers: { Accept: "application/json" } };
+    if (body !== undefined) {
+      opts.headers["Content-Type"] = "application/json";
+      opts.body = JSON.stringify(body);
+    }
+    let res;
+    try { res = await fetch(path, opts); } catch { throw new Error("Couldn't reach Silo. Check your connection and try again."); }
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401) { sessionExpired(); throw new Error(data.message || "Session expired."); }
+    if (!res.ok) {
+      const err = new Error(data.message || `Request failed (${res.status}).`);
+      err.code = data.code || "";
+      throw err;
+    }
+    return data;
+  }
+
+  function notice(kind, title, text) {
+    $("#notice").innerHTML = title ? `<div class="notice ${kind}"><strong>${esc(title)}</strong>${esc(text)}</div>` : "";
+  }
+
+  function sessionExpired() {
+    expired = true;
+    notice("warn", "This page's sign-in has expired.", " Open Surify from the administrator navigation again. Unsaved changes will be lost.");
+    $$("#shell main input, #shell main select, #shell main textarea, #shell main button, #profileSelect").forEach((e) => (e.disabled = true));
+  }
+
+  function setSaveMsg(text, kind) {
+    const m = $("#saveMsg");
+    m.textContent = text || "";
+    m.className = kind ? "status-" + kind : "";
+  }
+  function refreshSaveMsg() {
+    setSaveMsg(dirty || adminDirty ? "Unsaved changes" : "");
+  }
+  function markDirty() { dirty = true; refreshSaveMsg(); }
+  function markAdminDirty() { adminDirty = true; refreshSaveMsg(); }
+
+  // Mirrors renderTemplate in templates.go.
+  function render(tmpl, vars) {
+    return (tmpl || "").replace(/\r\n/g, "\n").split("\n").map((line) => {
+      if (!line.trim()) return "";
+      const out = line.replace(/\{([a-z_]+)\}/g, (m, k) => (k in vars ? vars[k] : m));
+      return out.split("\n").map(tidy).filter(Boolean).join("\n") || null;
+    }).filter((l) => l !== null).join("\n").trim();
+  }
+  function tidy(line) {
+    const seps = " \t·•|,:–—";
+    line = line.replace(/\(\)|\[\]/g, "").split(/\s+/).filter(Boolean).join(" ");
+    let a = 0, b = line.length;
+    while (a < b && seps.includes(line[a])) a++;
+    while (b > a && (seps + "-").includes(line[b - 1])) b--;
+    return line.slice(a, b);
+  }
+
+  function browserZone() {
+    try { return Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) { return ""; }
+  }
+  function zoneLabel(saved) { return browserZone() || saved || "UTC"; }
+
+  function soundOptions(selected, emptyLabel) {
+    const list = [...sounds];
+    if (selected && !list.some((s) => s.value === selected)) list.push({ value: selected, label: selected });
+    return `<option value="">${esc(emptyLabel)}</option>` + list.map((s) =>
+      `<option value="${esc(s.value)}"${s.value === selected ? " selected" : ""}>${esc(s.label)}</option>`).join("");
+  }
+  function priorityOptions(selected, inherit, inheritLabel, list = PRIORITIES) {
+    const first = inherit ? `<option value=""${selected == null ? " selected" : ""}>${esc(inheritLabel)}</option>` : "";
+    return first + list.map((p) => `<option value="${p.value}"${p.value === selected ? " selected" : ""}>${esc(p.label)}</option>`).join("");
+  }
+  function soundName(v) { const s = sounds.find((x) => x.value === v); return s ? s.label.replace(/ \(.*\)$/, "") : v; }
+  function priorityName(v) { const p = ADMIN_PRIORITIES.find((x) => x.value === v); return p ? p.short : String(v); }
+  function metaLine(sound, priority, inheritWord) {
+    return priority == null ? inheritWord + " priority" : priorityName(priority);
+  }
+
+  // Inserts a placeholder chip into the last focused title or message.
+  function bindChips(box, attr, fallback, getLast) {
+    $$(`[${attr}]`, box).forEach((chip) => chip.addEventListener("click", () => {
+      const last = getLast();
+      const target = last && box.contains(last) ? last : fallback();
+      const text = chip.getAttribute(attr);
+      const s = target.selectionStart ?? target.value.length, e = target.selectionEnd ?? s;
+      target.value = target.value.slice(0, s) + text + target.value.slice(e);
+      target.focus();
+      target.setSelectionRange(s + text.length, s + text.length);
+      target.dispatchEvent(new Event("input"));
+    }));
+  }
+
+  // ---------- Navigation ----------
+
+  function visibleTabs() { return TABS.filter((t) => !t.admin || (state && state.admin)); }
+
+  function renderNav() {
+    $("#navlist").innerHTML = visibleTabs().map((t) => `
+      <button class="nav" type="button" role="tab" id="tab-${t.id}" aria-controls="panel-${t.id}" aria-selected="${t.id === tab}" data-tab="${t.id}">
+        <span class="grow">${esc(t.label)}</span>
+      </button>`).join("");
+    $$("#navlist .nav").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
+  }
+
+  function showTab(id) {
+    if (!visibleTabs().some((t) => t.id === id)) id = "account";
+    tab = id;
+    const t = TABS.find((x) => x.id === id);
+    $("#tabTitle").textContent = t.label;
+    $("#tabSub").textContent = t.sub;
+    TABS.forEach((x) => { $("#panel-" + x.id).hidden = x.id !== id; });
+    $$("#navlist .nav").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === id)));
+    if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id);
+  }
+
+  function renderRailFoot() {
+    const foot = $("#railFoot");
+    let html = "";
+    if (state && state.admin) {
+      html += `<a href="/admin/activity">${ICON_SCREEN}Silo activity</a>`;
+    }
+
+    foot.innerHTML = html;
+    foot.hidden = !html;
+  }
+
+  // ---------- Start-up ----------
+
+  async function init() {
+    try {
+      state = await api("api/state");
+    } catch (e) {
+      $("#loading").hidden = true;
+      if (!expired) notice("error", "Couldn't load Surify settings.", " " + e.message);
+      return;
+    }
+    $("#loading").hidden = true;
+    if (state.problem) {
+      notice("warn", "Gotify isn't ready yet.", " " + state.problem.message);
+      return;
+    }
+    if (state.notice) notice(state.notice.level === "warn" ? "warn" : "info", state.notice.title, " " + state.notice.message);
+    sounds = state.sounds;
+    renderNav();
+    renderProfilePick();
+    showTab((location.hash || "").slice(1) || "account");
+    $("#saveBtn").hidden = false;
+    if (state.admin && state.admin_keys) { renderKeys(); loadAdmin(); }
+    const active = state.profiles.find((p) => p.active) || state.profiles[0];
+    profileId = active.id;
+    $("#profileSelect").value = profileId;
+    await loadProfile();
+  }
+
+  function renderProfilePick() { $("#profilePick").hidden = true; }
+
+  // ---------- Profile (Gotify account, My alerts) ----------
+
+  async function loadProfile() {
+    $("#panel-account").innerHTML = `<div class="skeleton"></div>`;
+    $("#panel-mine").innerHTML = `<div class="skeleton"></div>`;
+    try {
+      view = await api("api/profiles/" + encodeURIComponent(profileId));
+    } catch (e) {
+      if (!expired) notice("error", "Couldn't load this profile.", " " + e.message);
+      return;
+    }
+    draft = JSON.parse(JSON.stringify(view));
+    draft.server_url = view.server_url_hint || state.default_server_url || ""; draft.app_token = ""; draft.clear_app_token = false;
+    normalizeDraft();
+    devices = view.device ? view.device.split(",") : [];
+    dirty = false;
+    renderProfile();
+    if (!view.configured) setSaveMsg("Not set up yet"); else refreshSaveMsg();
+  }
+
+  function normalizeDraft() {
+    draft.episode_reasons = draft.episode_reasons || [];
+    draft.group_minutes = draft.group_minutes || 0;
+    draft.quiet = { enabled: false, start: "22:00", end: "07:00", silence_emergency: false, ...(draft.quiet || {}) };
+    draft.episode_reason_options = draft.episode_reason_options || [];
+    lastGroupMinutes = draft.group_minutes || 5;
+  }
+
+  // The viewer's own profile, when they're an admin: it carries the emergency
+  // switch, because admin alerts follow its quiet hours.
+  function isAdminsOwnProfile() {
+    const p = state.profiles.find((x) => x.id === profileId);
+    return !!(state.admin && p && p.active);
+  }
+
+  function deviceOptions() {
+    const current = draft.device;
+    const list = [...new Set([...devices, ...(current && !current.includes(",") ? [current] : [])])];
+    return `<option value="">All devices</option>` + list.map((d) =>
+      `<option value="${esc(d)}"${d === current ? " selected" : ""}>${esc(d)}</option>`).join("");
+  }
+
+  function renderProfile() {
+    renderAccount();
+    renderMine();
+  }
+
+  function renderAccount() {
+    const keyPh = view.server_url_hint || state.default_server_url || "https://gotify.example.com";
+    const tokenPh = view.app_token_hint ? `Saved (${view.app_token_hint})` : (state.has_default_token ? "Shared token (configured server only)" : "Application token from your Gotify server");
+    const tokenHelp = view.app_token_hint ? `<span class="help">Leave blank to keep the saved token.</span>` : state.has_default_token ? "" : `<span class="help">Required on this server. Create an application in your Gotify server.</span>`;
+    $("#panel-account").innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:16px">
+      ${view.configured && !view.admin_managed ? `<div class="notice warn"><strong>Activate your administrator connection.</strong>Save this connection once after upgrading to Surify. Earlier connections stay inactive until saved by their administrator.</div>` : ""}
+      ${state.admin_keys && !state.admin_keys.monitor_key_set ? `<div class="notice warn"><strong>Automatic delivery is paused.</strong>Set up the read-only Silo key on the Silo API keys tab so Surify can verify that recipients are still administrators. You can save and test your connection first.</div>` : ""}
+      <section class="card">
+        <div class="cardHead">
+          <h2>Administrator connection${view.profile_name ? ` <span class="muted" style="font-weight:400">· ${esc(view.profile_name)}</span>` : ""}</h2>
+          <label class="sw"><input type="checkbox" id="enabled"${draft.enabled ? " checked" : ""}>Enable inbox notifications</label>
+        </div>
+        <div class="cols">
+          <div class="field"><label class="lbl" for="serverURL">Gotify server URL</label>
+            <input type="url" id="serverURL" autocomplete="off" spellcheck="false" value="${esc(draft.server_url || view.server_url_hint || state.default_server_url || "")}" placeholder="${esc(keyPh)}">
+            <span class="help">Base URL of your Gotify server, including any path prefix. Use an application token for this server.</span></div>
+          <div class="field"><label class="lbl" for="appToken">Application token</label>
+            <input type="password" id="appToken" autocomplete="off" spellcheck="false" placeholder="${esc(tokenPh)}">
+            <span class="help">Accepts legacy tokens and private gtfya.… application tokens. Copy the private token when creating the application, not its public identifier.</span>
+            ${tokenHelp}${view.app_token_hint && state.has_default_token && (draft.server_url || view.server_url_hint) === state.default_server_url ? `<button class="link" type="button" id="clearToken" style="align-self:flex-start">${draft.clear_app_token ? "Keep my saved token" : "Use the server's token instead"}</button>` : ""}</div>
+          <div class="field" hidden><label class="lbl" for="device">Device</label><select id="device">${deviceOptions()}</select></div>
+          <div class="field"><span class="lbl">Check</span>
+            <span class="inline"><button class="btn" type="button" id="checkBtn">Check server</button><span class="help" id="checkMsg" role="status" aria-live="polite"></span></span></div>
+        </div>
+      </section>
+      <section class="card">
+        <h2>Delivery</h2>
+        <div class="cols">
+          <div class="field" hidden><label class="lbl" for="sound">Sound</label><select id="sound">${soundOptions(draft.sound, "Gotify app default")}</select></div>
+          <div class="field"><label class="lbl" for="priority">Priority</label><select id="priority">${priorityOptions(draft.priority, false)}</select></div>
+        </div>
+      </section>
+      <section class="card">
+        <div class="cardHead"><h2>Quiet hours</h2>
+          <label class="sw"><input type="checkbox" id="pqOn"${draft.quiet.enabled ? " checked" : ""}>On</label></div>
+        <div class="flexrow" style="gap:16px;align-items:flex-end">
+          <div class="field"><label class="lbl" for="pqStart">From</label><input type="time" id="pqStart" value="${esc(draft.quiet.start)}"></div>
+          <div class="field"><label class="lbl" for="pqEnd">Until</label><input type="time" id="pqEnd" value="${esc(draft.quiet.end)}"></div>
+          <span class="help" style="min-height:40px;display:inline-flex;align-items:center">${esc(zoneLabel(draft.time_zone))}</span>
+        </div>
+        <span class="help">Pushes use low priority in this window; sound behavior depends on your Gotify client${isAdminsOwnProfile() ? ", admin alerts included" : ""}.</span>
+        ${isAdminsOwnProfile() ? `<div class="flexrow" style="border-top:1px solid var(--border);padding-top:12px">
+          <label class="sw"><input type="checkbox" id="pqSilence"${draft.quiet.silence_emergency ? " checked" : ""}>Turn urgent alerts down too</label>
+          </div>` : ""}
+      </section>
+      ${view.configured ? `<div class="dangerZone"><button class="btn ghost danger" type="button" id="removeBtn">Remove connection</button></div>` : ""}
+      </div>`;
+    bindAccount();
+  }
+
+  function bindAccount() {
+    const on = (sel, ev, fn) => { const e = $(sel); if (e) e.addEventListener(ev, fn); };
+    on("#enabled", "change", (e) => { draft.enabled = e.target.checked; markDirty(); });
+    on("#serverURL", "input", (e) => { draft.server_url = e.target.value.trim(); markDirty(); });
+    on("#appToken", "input", (e) => { draft.app_token = e.target.value.trim(); markDirty(); });
+    on("#device", "change", (e) => { draft.device = e.target.value; markDirty(); });
+    on("#sound", "change", (e) => { draft.sound = e.target.value; markDirty(); renderMine(); });
+    on("#priority", "change", (e) => { draft.priority = Number(e.target.value); markDirty(); });
+    on("#pqOn", "change", (e) => { draft.quiet.enabled = e.target.checked; markDirty(); });
+    on("#pqStart", "input", (e) => { draft.quiet.start = e.target.value; markDirty(); });
+    on("#pqEnd", "input", (e) => { draft.quiet.end = e.target.value; markDirty(); });
+    on("#pqSilence", "change", (e) => { draft.quiet.silence_emergency = e.target.checked; markDirty(); });
+    on("#clearToken", "click", (e) => {
+      draft.clear_app_token = !draft.clear_app_token;
+      e.target.textContent = draft.clear_app_token ? "Keep my saved token" : "Use the server's token instead";
+      markDirty();
+    });
+    on("#checkBtn", "click", checkKey);
+    on("#removeBtn", "click", removeProfile);
+  }
+
+  function reasonPills() {
+    return draft.episode_reason_options.map((o) =>
+      `<label class="pill"><input type="checkbox" data-reason="${esc(o.value)}"${draft.episode_reasons.includes(o.value) ? " checked" : ""}>${esc(o.label)}</label>`).join("");
+  }
+
+  // The grouped wording only exists for types that can be merged (new episodes).
+  function groupType() { return state.types.find((t) => t.default_group_title); }
+
+  function renderMine() {
+    if (!draft) return;
+    const on = draft.group_minutes > 0;
+    const gt = groupType();
+    $("#panel-mine").innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:16px">
+      <section class="card">
+        <h2>New episodes</h2>
+        <div class="field"><span class="lbl">Only when the show is in my <span class="muted" style="font-weight:400">(none = every episode)</span></span>
+          <div class="pills">${reasonPills()}</div></div>
+        <div class="flexrow">
+          <label class="sw"><input type="checkbox" id="groupOn"${on ? " checked" : ""}>Group a season drop into one push</label>
+          <label class="inline" id="groupField"${on ? "" : " hidden"}>wait<input type="number" class="num" id="groupMinutes" min="1" max="120" step="1" inputmode="numeric" value="${esc(on ? draft.group_minutes : "")}" aria-label="Minutes to wait for more episodes">min</label>
+        </div>
+        ${gt ? `<details id="grpWording"${openTypes.has("__group") ? " open" : ""}>
+          <summary>Grouped wording</summary>
+          <div class="editor">
+            <div class="col">
+              <div class="field"><label class="lbl" for="grp_title">Title</label><input type="text" id="grp_title" value="${esc(draft.types[gt.key].group_title)}"></div>
+              <div class="field"><label class="lbl" for="grp_message">Message</label><textarea id="grp_message" rows="3">${esc(draft.types[gt.key].group_message)}</textarea></div>
+              <div class="chips" aria-label="Insert a placeholder">${gt.group_placeholders.map((p) => `<button class="chip" type="button" data-ginsert="{${esc(p)}}">{${esc(p)}}</button>`).join("")}</div>
+            </div>
+            <div class="col">
+              <span class="lbl">Preview</span>
+              <div class="preview" aria-live="polite"><div class="pt"></div><div class="pm"></div></div>
+              <span class="help">Priority follows "${esc(gt.label)}".</span>
+              <div class="actions"><button class="btn" type="button" id="grpTest">Send test</button><button class="btn ghost" type="button" id="grpReset">Reset wording</button><span class="help" id="grpTestMsg" role="status" aria-live="polite"></span></div>
+            </div>
+          </div>
+        </details>` : ""}
+      </section>
+      <section class="card">
+        <h2>Notifications</h2>
+        <div class="rows">${state.types.map(renderType).join("")}</div>
+      </section>
+      <section class="card">
+        <h2>Message extras</h2>
+        <div class="flexrow">
+          <label class="sw" hidden><input disabled type="checkbox" id="attachPoster"${draft.attach_poster ? " checked" : ""}>Poster attachments (unavailable)</label>
+          <label class="sw"><input type="checkbox" id="includeLink"${draft.include_link ? " checked" : ""}>"Open in Silo" link</label>
+          <label class="sw" hidden><input disabled type="checkbox" id="html"${draft.html ? " checked" : ""}>HTML formatting (unavailable)</label>
+        </div>
+      </section>
+      </div>`;
+    bindMine();
+    state.types.forEach(updatePreview);
+    updateGroupPreview();
+  }
+
+  function renderType(t) {
+    const ts = draft.types[t.key];
+    const id = t.key.replace(/\W/g, "_");
+    const open = openTypes.has(t.key);
+    return `
+      <div class="item" data-type="${esc(t.key)}">
+        <div class="itemHead">
+          <label class="sw"><input type="checkbox" data-k="enabled"${ts.enabled ? " checked" : ""}>${esc(t.label)}</label>
+          <span class="meta">${esc(metaLine(ts.sound, ts.priority ?? null, "Default"))}</span>
+          <button class="btn" type="button" data-open aria-expanded="${open}">${open ? "Close" : "Customize"}</button>
+        </div>
+        ${open ? `<div class="editor">
+          <div class="col">
+            <div class="field"><label class="lbl" for="${id}_title">Title</label><input type="text" id="${id}_title" data-k="title" value="${esc(ts.title)}"></div>
+            <div class="field"><label class="lbl" for="${id}_message">Message</label><textarea id="${id}_message" data-k="message" rows="3">${esc(ts.message)}</textarea></div>
+            <div class="chips" aria-label="Insert a placeholder">${t.placeholders.map((p) => `<button class="chip" type="button" data-insert="{${esc(p)}}">{${esc(p)}}</button>`).join("")}</div>
+            <div class="cols" style="gap:12px">
+              <div class="field" hidden><label class="lbl" for="${id}_sound">Sound</label><select id="${id}_sound" data-k="sound">${soundOptions(ts.sound || "", "Same as account")}</select></div>
+              <div class="field"><label class="lbl" for="${id}_priority">Priority</label><select id="${id}_priority" data-k="priority">${priorityOptions(ts.priority ?? null, true, "Same as account")}</select></div>
+            </div>
+          </div>
+          <div class="col">
+            <span class="lbl">Preview</span>
+            <div class="preview" aria-live="polite"><div class="pt"></div><div class="pm"></div></div>
+            <div class="actions"><button class="btn" type="button" data-test>Send test</button><button class="btn ghost" type="button" data-reset>Reset wording</button><span class="help" data-test-msg role="status" aria-live="polite"></span></div>
+          </div>
+        </div>` : ""}
+      </div>`;
+  }
+
+  function sampleVars(type) {
+    const p = state.profiles.find((x) => x.id === profileId);
+    return { profile: p ? p.name : "", type: type.key, type_label: type.label, ...type.sample };
+  }
+
+  function updatePreview(t) {
+    const box = $(`#panel-mine .item[data-type="${CSS.escape(t.key)}"]`);
+    if (!box || !$(".pt", box)) return;
+    const ts = draft.types[t.key];
+    const vars = sampleVars(t);
+    $(".pt", box).textContent = render(ts.title, vars) || "(no title)";
+    $(".pm", box).textContent = render(ts.message, vars) || "(no message)";
+  }
+
+  function updateGroupPreview() {
+    const t = groupType();
+    const box = $("#grpWording");
+    if (!t || !box) return;
+    const ts = draft.types[t.key];
+    const p = state.profiles.find((x) => x.id === profileId);
+    const vars = { profile: p ? p.name : "", type: t.key, type_label: t.label, ...t.group_sample };
+    $(".pt", box).textContent = render(ts.group_title, vars) || "(no title)";
+    $(".pm", box).textContent = render(ts.group_message, vars) || "(no message)";
+  }
+
+  function bindMine() {
+    const on = (sel, ev, fn) => { const e = $(sel); if (e) e.addEventListener(ev, fn); };
+    $$("#panel-mine [data-reason]").forEach((c) => c.addEventListener("change", () => {
+      draft.episode_reasons = draft.episode_reasons.filter((v) => v !== c.dataset.reason);
+      if (c.checked) draft.episode_reasons.push(c.dataset.reason);
+      markDirty();
+    }));
+    on("#groupOn", "change", (e) => {
+      draft.group_minutes = e.target.checked ? lastGroupMinutes || 5 : 0;
+      $("#groupField").hidden = !e.target.checked;
+      $("#groupMinutes").value = e.target.checked ? draft.group_minutes : "";
+      markDirty();
+    });
+    on("#groupMinutes", "input", (e) => {
+      draft.group_minutes = e.target.value === "" ? 0 : Math.round(Number(e.target.value));
+      if (draft.group_minutes > 0) lastGroupMinutes = draft.group_minutes;
+      markDirty();
+    });
+    on("#attachPoster", "change", (e) => { draft.attach_poster = e.target.checked; markDirty(); });
+    on("#includeLink", "change", (e) => { draft.include_link = e.target.checked; markDirty(); });
+    on("#html", "change", (e) => { draft.html = e.target.checked; markDirty(); });
+
+    const grp = $("#grpWording");
+    if (grp) {
+      const t = groupType();
+      const ts = draft.types[t.key];
+      let lastGroupField = null;
+      grp.addEventListener("toggle", () => { if (grp.open) openTypes.add("__group"); else openTypes.delete("__group"); });
+      const title = $("#grp_title"), message = $("#grp_message");
+      [[title, "group_title"], [message, "group_message"]].forEach(([input, k]) => {
+        input.addEventListener("input", () => { ts[k] = input.value; markDirty(); updateGroupPreview(); });
+        input.addEventListener("focus", () => (lastGroupField = input));
+      });
+      bindChips(grp, "data-ginsert", () => message, () => lastGroupField);
+      $("#grpReset").addEventListener("click", () => {
+        ts.group_title = t.default_group_title; ts.group_message = t.default_group_message;
+        title.value = ts.group_title; message.value = ts.group_message;
+        markDirty(); updateGroupPreview();
+      });
+      $("#grpTest").addEventListener("click", (e) =>
+        runTest(e.target, $("#grpTestMsg"), `api/profiles/${encodeURIComponent(profileId)}/test`, { settings: payload(), type: t.key, group: true }));
+    }
+
+    $$("#panel-mine .item").forEach((box) => {
+      const t = state.types.find((x) => x.key === box.dataset.type);
+      const ts = draft.types[t.key];
+      $("[data-open]", box).addEventListener("click", () => {
+        if (openTypes.has(t.key)) openTypes.delete(t.key); else openTypes.add(t.key);
+        renderMine();
+      });
+      $$("[data-k]", box).forEach((input) => {
+        const k = input.dataset.k;
+        const ev = input.tagName === "SELECT" || input.type === "checkbox" ? "change" : "input";
+        input.addEventListener(ev, () => {
+          if (k === "enabled") ts.enabled = input.checked;
+          else if (k === "priority") ts.priority = input.value === "" ? null : Number(input.value);
+          else ts[k] = input.value;
+          markDirty();
+          if (k === "sound" || k === "priority") $(".meta", box).textContent = metaLine(ts.sound, ts.priority ?? null, "Default");
+          updatePreview(t);
+        });
+        if (k === "title" || k === "message") input.addEventListener("focus", () => (lastField = input));
+      });
+      if (!$(".editor", box)) return;
+      bindChips(box, "data-insert", () => $("[data-k=message]", box), () => lastField);
+      $("[data-reset]", box).addEventListener("click", () => {
+        ts.title = t.default_title; ts.message = t.default_message;
+        $("[data-k=title]", box).value = ts.title;
+        $("[data-k=message]", box).value = ts.message;
+        markDirty(); updatePreview(t);
+      });
+      $("[data-test]", box).addEventListener("click", (e) =>
+        runTest(e.target, $("[data-test-msg]", box), `api/profiles/${encodeURIComponent(profileId)}/test`, { settings: payload(), type: t.key }));
+    });
+  }
+
+  function payload() {
+    return {
+      enabled: draft.enabled, server_url: draft.server_url, app_token: draft.app_token,
+      clear_app_token: draft.clear_app_token, device: draft.device, sound: draft.sound,
+      priority: draft.priority, html: draft.html, attach_poster: draft.attach_poster,
+      include_link: draft.include_link, types: draft.types,
+      episode_reasons: draft.episode_reasons, group_minutes: draft.group_minutes,
+      quiet: draft.quiet, time_zone: browserZone(),
+    };
+  }
+
+  async function runTest(btn, out, path, body, onKeyProblem) {
+    btn.disabled = true;
+    out.className = "help"; out.textContent = "Sending…";
+    try {
+      await api(path, "POST", body);
+      out.className = "help status-ok"; out.textContent = "Sent.";
+    } catch (e) {
+      if (expired) return;
+      if (onKeyProblem && isKeyProblem(e)) { onKeyProblem(e); return; }
+      out.className = "help status-err"; out.textContent = e.message;
+    } finally {
+      btn.disabled = expired;
+    }
+  }
+
+  async function checkKey() {
+    const msg = $("#checkMsg"), btn = $("#checkBtn");
+    btn.disabled = true;
+    msg.className = "help"; msg.textContent = "Checking…";
+    try {
+      const res = await api(`api/profiles/${encodeURIComponent(profileId)}/validate`, "POST",
+        { server_url: draft.server_url, app_token: draft.clear_app_token ? "" : draft.app_token, clear_app_token: draft.clear_app_token });
+      devices = res.devices; sounds = res.sounds;
+      $("#device").innerHTML = deviceOptions();
+      $("#sound").innerHTML = soundOptions(draft.sound, "Gotify app default");
+      renderMine();
+      msg.className = "help status-ok";
+      msg.textContent = devices.length ? `Works · ${devices.length} device${devices.length === 1 ? "" : "s"}` : "Server reachable. Send a test notification to verify the application token.";
+    } catch (e) {
+      if (!expired) { msg.className = "help status-err"; msg.textContent = e.message; }
+    } finally {
+      btn.disabled = expired;
+    }
+  }
+
+  async function saveProfile() {
+    const res = await api("api/profiles/" + encodeURIComponent(profileId), "PUT", payload());
+    const summary = state.profiles.find((p) => p.id === profileId);
+    if (summary) { summary.configured = true; summary.enabled = res.profile.enabled; }
+    view = res.profile;
+    draft = JSON.parse(JSON.stringify(view));
+    draft.server_url = view.server_url_hint || state.default_server_url || ""; draft.app_token = ""; draft.clear_app_token = false;
+    normalizeDraft();
+    dirty = false;
+    renderProfile();
+    renderProfilePick();
+    return res.warning || "";
+  }
+
+  async function removeProfile() {
+    if (!confirm(`Stop sending ${view.profile_name}'s notifications to Gotify and forget its keys?`)) return;
+    try {
+      await api("api/profiles/" + encodeURIComponent(profileId), "DELETE");
+      const summary = state.profiles.find((p) => p.id === profileId);
+      if (summary) { summary.configured = false; summary.enabled = false; }
+      await loadProfile();
+      setSaveMsg("Removed", "ok");
+      refreshAdminReady();
+    } catch (e) {
+      if (!expired) setSaveMsg(e.message, "err");
+    }
+  }
+
+  // ---------- Save ----------
+
+  $("#saveBtn").addEventListener("click", async () => {
+    const btn = $("#saveBtn");
+    if (!dirty && !adminDirty) { setSaveMsg("Nothing to save"); return; }
+    if (adminDirty) {
+      const problem = adminProblemCheck();
+      if (problem) { showTab("admin"); setSaveMsg(problem[0], "err"); if (problem[1]) problem[1].focus(); return; }
+    }
+    btn.disabled = true;
+    setSaveMsg("Saving…");
+    const warnings = [];
+    try {
+      if (dirty) {
+        const w = await saveProfile();
+        if (w) warnings.push(w);
+        refreshAdminReady();
+      }
+      if (adminDirty) {
+        const w = await saveAdmin();
+        if (w) warnings.push(w);
+      }
+      if (warnings.length) setSaveMsg(warnings.join(" "), "err"); else setSaveMsg("Saved", "ok");
+    } catch (e) {
+      if (!expired) setSaveMsg(e.message, "err");
+    } finally {
+      btn.disabled = expired;
+    }
+  });
+
+  // ---------- Admin alerts ----------
+
+  let adminData = null, adminDraft = null, adminUsers = [], adminUsersError = "";
+  let adminState = "loading", adminProblem = "", adminDirty = false, adminField = null;
+  let adminSub = "alerts", openAlert = null;
+  const isKeyProblem = (e) => e && typeof e.code === "string" && e.code.startsWith("monitor_key_");
+
+  function showKeyOnly(code) {
+    adminState = "key";
+    adminProblem = code || "monitor_key_missing";
+    adminData = null; adminDraft = null; adminDirty = false;
+    refreshSaveMsg();
+    renderAdmin();
+    renderKeys();
+    renderRailFoot();
+  }
+
+  async function loadAdmin() {
+    if (!state.admin_keys.monitor_key_set) { showKeyOnly("monitor_key_missing"); return; }
+    adminState = "loading";
+    renderAdmin();
+    const usersReq = api("api/admin/users");
+    usersReq.catch(() => {});
+    try {
+      adminData = await api("api/admin/alerts");
+    } catch (e) {
+      if (expired) return;
+      if (isKeyProblem(e)) { showKeyOnly(e.code); return; }
+      adminState = "error"; adminProblem = e.message;
+      renderAdmin();
+      return;
+    }
+    adminUsers = []; adminUsersError = "";
+    try {
+      adminUsers = (await usersReq).users || [];
+    } catch (e) {
+      if (expired) return;
+      if (isKeyProblem(e)) { showKeyOnly(e.code); return; }
+      adminUsersError = e.message;
+    }
+    adminState = "ready"; adminProblem = ""; adminDirty = false;
+    adminDraft = draftFrom(adminData.settings);
+    renderAdmin();
+    renderKeys();
+    renderRailFoot();
+  }
+
+  function draftFrom(settings) {
+    const d = JSON.parse(JSON.stringify(settings));
+    d.limits = { user_streams: 0, server_streams: 0, bandwidth_mbps: 0, bandwidth_remote_only: false, disk_pct: 0, memory_pct: 0, ...(d.limits || {}) };
+    d.filters.libraries = d.filters.libraries || [];
+    d.digest = { day: 0, hour: 18, ...(d.digest || {}) };
+    d.attach_poster = !!d.attach_poster;
+    d.silo_link = d.silo_link !== false;
+    return d;
+  }
+
+  async function refreshAdminReady() {
+    if (!adminData || adminState !== "ready") return;
+    try {
+      const fresh = await api("api/admin/alerts");
+      adminData.gotify_ready = fresh.gotify_ready;
+      adminData.gotify_message = fresh.gotify_message;
+      const slot = $("#adminReady");
+      if (slot) slot.innerHTML = adminNotices();
+      renderRailFoot();
+    } catch (e) {
+      if (isKeyProblem(e)) showKeyOnly(e.code);
+    }
+  }
+
+  function adminNotices() {
+    let html = "";
+    if (adminData && !adminData.gotify_ready) {
+      html += `<div class="notice warn"><strong>Save your administrator connection first.</strong>Admin alerts use your administrator connection. <button class="link" type="button" data-goto="account">Connection</button></div>`;
+    }
+
+    return html;
+  }
+
+  function renderAdmin() {
+    const box = $("#panel-admin");
+    if (!state || !state.admin) { box.innerHTML = ""; return; }
+    if (adminState === "loading") { box.innerHTML = `<div class="skeleton"></div>`; return; }
+    if (adminState === "key") {
+      box.innerHTML = `<section class="card"><h2>Admin alerts are off</h2>
+        <span class="help">${esc(KEY_PROBLEMS[adminProblem] || KEY_PROBLEMS.monitor_key_missing)}</span>
+        <div class="actions"><button class="btn primary" type="button" data-goto="keys">Set up the key</button></div></section>`;
+      bindGoto(box);
+      return;
+    }
+    if (adminState === "error") {
+      box.innerHTML = `<div class="notice error"><strong>Couldn't load your admin alert settings.</strong>${esc(adminProblem)}
+        <div class="actions"><button class="btn" type="button" id="adminRetry">Try again</button></div></div>`;
+      $("#adminRetry").addEventListener("click", loadAdmin);
+      return;
+    }
+    const subs = [["alerts", "Alerts"], ["filters", "Filters"], ["extras", "Extras"]];
+    box.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div id="adminReady" style="display:flex;flex-direction:column;gap:12px">${adminNotices()}</div>
+        <div class="flexrow" style="justify-content:space-between;gap:12px">
+          <div class="subtabs" role="tablist" aria-label="Admin alert sections">${subs.map(([id, label]) =>
+            `<button class="subtab" type="button" role="tab" data-sub="${id}" aria-selected="${adminSub === id}">${label}</button>`).join("")}</div>
+          <span class="inline help"><span class="dot"></span>Read-only key working</span>
+        </div>
+        <div id="adminBody">${adminSub === "alerts" ? renderAlertsSub() : adminSub === "filters" ? renderFiltersSub() : renderExtrasSub()}</div>
+      </div>`;
+    $$(".subtab", box).forEach((b) => b.addEventListener("click", () => { adminSub = b.dataset.sub; renderAdmin(); }));
+    bindGoto(box);
+    if (adminSub === "alerts") bindAlertsSub(); else if (adminSub === "filters") bindFiltersSub(); else bindExtrasSub();
+  }
+
+  function bindGoto(box) {
+    $$("[data-goto]", box).forEach((b) => b.addEventListener("click", () => showTab(b.dataset.goto)));
+  }
+
+  function renderAlertsSub() {
+    return `<div style="display:flex;flex-direction:column;gap:16px">${ALERT_GROUPS.map((g) => {
+      const types = adminData.alert_types.filter((t) => (t.group || "playback") === g.key);
+      if (!types.length) return "";
+      const switchable = types.filter((t) => !t.parent);
+      const onCount = switchable.filter((t) => adminDraft.alerts[t.key].enabled).length;
+      const editing = types.find((t) => t.key === openAlert);
+      return `<section class="card" data-group="${g.key}">
+        <div class="cardHead"><h2>${esc(g.title)}</h2><span class="help">${onCount} of ${switchable.length} on</span></div>
+        ${g.key === "scheduled" ? `<span class="help">Need scheduling in Silo: see Extras.</span>` : ""}
+        <div class="tiles">${types.map(renderTile).join("")}</div>
+        ${editing ? renderAlertEditor(editing) : ""}
+      </section>`;
+    }).join("")}</div>`;
+  }
+
+  function renderTile(t) {
+    const a = adminDraft.alerts[t.key];
+    const id = "al_" + t.key.replace(/\W/g, "_");
+    const parent = t.parent ? adminData.alert_types.find((x) => x.key === t.parent) : null;
+    const open = openAlert === t.key;
+    return `<div class="tile${open ? " open" : ""}" data-alert="${esc(t.key)}">
+      <div class="top">
+        ${parent ? `<span class="name">${esc(t.label)}</span>` : `<label class="sw"><input type="checkbox" data-k="enabled"${a.enabled ? " checked" : ""}>${esc(t.label)}</label>`}
+        <button class="btn icon ghost" type="button" data-edit aria-expanded="${open}" aria-label="Edit wording for ${esc(t.label)}">${ICON_EDIT}</button>
+      </div>
+      <div class="meta">${parent ? `Follows ${esc(parent.label)} · ` : ""}${esc(metaLine(a.sound, a.priority ?? null, "Default"))}</div>
+      ${(t.limits || []).map((l) => limitRow(t, l, id)).join("")}
+      ${t.key === "bandwidth" ? `<label class="sw sm"><input type="checkbox" data-remote-only${adminDraft.limits.bandwidth_remote_only ? " checked" : ""}>Remote streams only</label>` : ""}
+      ${t.key === "digest.weekly" ? digestRow(id) : ""}
+    </div>`;
+  }
+
+  function limitRow(t, lim, id) {
+    const v = adminDraft.limits[lim.key];
+    const short = { user_streams: "More than", server_streams: "More than", bandwidth_mbps: "Over", disk_pct: "Disk over", memory_pct: "Memory over" }[lim.key] || lim.label;
+    const unit = lim.unit.replace(/^% full$/, "%");
+    return `<label class="inline">${esc(short)}<input type="number" class="num" id="${id}_${esc(lim.key)}" data-limit="${esc(lim.key)}" min="1" max="${esc(lim.max)}" step="1" inputmode="numeric" value="${esc(v || "")}"${lim.optional ? ` placeholder="off"` : ""} aria-label="${esc(lim.label)}">${esc(unit)}</label>`;
+  }
+
+  function digestRow(id) {
+    const d = adminDraft.digest;
+    const hours = Array.from({ length: 24 }, (_, h) => `<option value="${h}"${h === d.hour ? " selected" : ""}>${String(h).padStart(2, "0")}:00</option>`).join("");
+    return `<span class="inline" style="font-size:13px">
+      <select class="auto" id="${id}_day" data-digest="day" aria-label="Digest day">${DAYS.map((n, i) => `<option value="${i}"${i === d.day ? " selected" : ""}>${n}</option>`).join("")}</select>
+      at <select class="auto" id="${id}_hour" data-digest="hour" aria-label="Digest hour">${hours}</select></span>`;
+  }
+
+  function renderAlertEditor(t) {
+    const a = adminDraft.alerts[t.key];
+    const id = "ed_" + t.key.replace(/\W/g, "_");
+    return `<div class="editor" data-editor="${esc(t.key)}">
+      <div class="col">
+        <div class="cardHead"><b style="font-size:14px">Wording: ${esc(t.label)}</b><button class="btn ghost" type="button" data-close>Done</button></div>
+        <div class="field"><label class="lbl" for="${id}_title">Title</label><input type="text" id="${id}_title" data-k="title" value="${esc(a.title)}"></div>
+        <div class="field"><label class="lbl" for="${id}_message">Message</label><textarea id="${id}_message" data-k="message" rows="3">${esc(a.message)}</textarea></div>
+        <div class="chips" aria-label="Insert a placeholder">${t.placeholders.map((p) => `<button class="chip" type="button" data-insert="{${esc(p)}}">{${esc(p)}}</button>`).join("")}</div>
+      </div>
+      <div class="col">
+        <div class="cols" style="gap:12px">
+          <div class="field" hidden><label class="lbl" for="${id}_sound">Sound</label><select id="${id}_sound" data-k="sound">${soundOptions(a.sound || "", "Same as account")}</select></div>
+          <div class="field"><label class="lbl" for="${id}_priority">Priority</label><select id="${id}_priority" data-k="priority">${priorityOptions(a.priority ?? null, true, "Same as account", ADMIN_PRIORITIES)}</select></div>
+        </div>
+        <span class="lbl">Preview</span>
+        <div class="preview" aria-live="polite"><div class="pt"></div><div class="pm"></div></div>
+        <div class="actions"><button class="btn" type="button" data-test>Send test</button><button class="btn ghost" type="button" data-reset>Reset wording</button><span class="help" data-test-msg role="status" aria-live="polite"></span></div>
+      </div>
+    </div>`;
+  }
+
+  function updateAlertPreview(t) {
+    const box = $(`#panel-admin [data-editor="${CSS.escape(t.key)}"]`);
+    if (!box) return;
+    const a = adminDraft.alerts[t.key];
+    const vars = { ...t.sample, type: t.key, type_label: t.label };
+    $(".pt", box).textContent = render(a.title, vars) || "(no title)";
+    $(".pm", box).textContent = render(a.message, vars) || "(no message)";
+  }
+
+  function tileMeta(t) {
+    const tile = $(`#panel-admin .tile[data-alert="${CSS.escape(t.key)}"] .meta`);
+    if (!tile) return;
+    const a = adminDraft.alerts[t.key];
+    const parent = t.parent ? adminData.alert_types.find((x) => x.key === t.parent) : null;
+    tile.textContent = (parent ? `Follows ${parent.label} · ` : "") + metaLine(a.sound, a.priority ?? null, "Default");
+  }
+
+  function bindAlertsSub() {
+    const box = $("#panel-admin");
+    $$(".tile", box).forEach((tile) => {
+      const t = adminData.alert_types.find((x) => x.key === tile.dataset.alert);
+      const a = adminDraft.alerts[t.key];
+      const sw = $("[data-k=enabled]", tile);
+      if (sw) sw.addEventListener("change", () => {
+        a.enabled = sw.checked;
+        adminData.alert_types.filter((x) => x.parent === t.key).forEach((x) => { adminDraft.alerts[x.key].enabled = a.enabled; });
+        markAdminDirty();
+        const head = $(`[data-group="${t.group || "playback"}"] .cardHead .help`, box);
+        if (head) {
+          const sws = adminData.alert_types.filter((x) => (x.group || "playback") === (t.group || "playback") && !x.parent);
+          head.textContent = `${sws.filter((x) => adminDraft.alerts[x.key].enabled).length} of ${sws.length} on`;
+        }
+      });
+      $("[data-edit]", tile).addEventListener("click", () => { openAlert = openAlert === t.key ? null : t.key; renderAdmin(); });
+    });
+    $$("[data-limit]", box).forEach((input) => input.addEventListener("input", () => {
+      adminDraft.limits[input.dataset.limit] = input.value === "" ? 0 : Math.round(Number(input.value));
+      markAdminDirty();
+    }));
+    $$("[data-remote-only]", box).forEach((c) => c.addEventListener("change", () => { adminDraft.limits.bandwidth_remote_only = c.checked; markAdminDirty(); }));
+    $$("[data-digest]", box).forEach((s) => s.addEventListener("change", () => { adminDraft.digest[s.dataset.digest] = Number(s.value); markAdminDirty(); }));
+
+    const ed = $("[data-editor]", box);
+    if (!ed) return;
+    const t = adminData.alert_types.find((x) => x.key === ed.dataset.editor);
+    const a = adminDraft.alerts[t.key];
+    $$("[data-k]", ed).forEach((input) => {
+      const k = input.dataset.k;
+      const ev = input.tagName === "SELECT" ? "change" : "input";
+      input.addEventListener(ev, () => {
+        if (k === "priority") a.priority = input.value === "" ? null : Number(input.value);
+        else a[k] = input.value;
+        markAdminDirty();
+        if (k === "sound" || k === "priority") tileMeta(t);
+        updateAlertPreview(t);
+      });
+      if (k === "title" || k === "message") input.addEventListener("focus", () => (adminField = input));
+    });
+    bindChips(ed, "data-insert", () => $("[data-k=message]", ed), () => adminField);
+    $("[data-close]", ed).addEventListener("click", () => { openAlert = null; renderAdmin(); });
+    $("[data-reset]", ed).addEventListener("click", () => {
+      a.title = t.default_title; a.message = t.default_message;
+      $("[data-k=title]", ed).value = a.title;
+      $("[data-k=message]", ed).value = a.message;
+      markAdminDirty(); updateAlertPreview(t);
+    });
+    $("[data-test]", ed).addEventListener("click", (e) =>
+      runTest(e.target, $("[data-test-msg]", ed), "api/admin/alerts/test", { settings: adminPayload(), alert: t.key }, (err) => showKeyOnly(err.code)));
+    updateAlertPreview(t);
+  }
+
+  function renderFiltersSub() {
+    const f = adminDraft.filters;
+    const media = adminData.media_types.map((m) => m);
+    f.media_types.forEach((v) => { if (!media.some((m) => m.value === v)) media.push({ value: v, label: v }); });
+    const libs = (adminData.libraries || []).map((l) => ({ value: l.id, label: l.name || "Library " + l.id }));
+    f.libraries.forEach((v) => { if (!libs.some((m) => m.value === v)) libs.push({ value: v, label: "Library " + v + " (not found)" }); });
+    return `<section class="card">
+      <div class="flexrow">
+        <label class="sw"><input type="checkbox" id="fRemote"${f.only_remote ? " checked" : ""}>Only remote streams</label>
+        <label class="sw"><input type="checkbox" id="fTranscode"${f.only_transcodes ? " checked" : ""}>Only transcodes</label>
+      </div>
+      <div class="field"><span class="lbl" id="ignoreLbl">Ignore these users</span><div id="userPick"></div></div>
+      <div class="cols">
+        <div class="field"><span class="lbl">Media types <span class="muted" style="font-weight:400">(none = all)</span></span>
+          <div class="pills">${media.map((m) => `<label class="pill"><input type="checkbox" data-media="${esc(m.value)}"${f.media_types.includes(m.value) ? " checked" : ""}>${esc(m.label)}</label>`).join("")}</div></div>
+        <div class="field"><span class="lbl">Libraries <span class="muted" style="font-weight:400">(none = all)</span></span>
+          <div class="pills">${libs.length ? libs.map((m) => `<label class="pill"><input type="checkbox" data-library="${esc(m.value)}"${f.libraries.includes(m.value) ? " checked" : ""}>${esc(m.label)}</label>`).join("") : `<span class="help">Silo didn't list any libraries.</span>`}</div></div>
+      </div>
+      <span class="help">Filters apply to playback alerts. Ignored users are also left out of per-account alerts and the digest's top viewers.</span>
+    </section>`;
+  }
+
+  function renderUserPick() {
+    const slot = $("#userPick");
+    if (!slot) return;
+    const ignored = adminDraft.filters.ignore_users;
+    const rows = adminUsers.map((u) => ({ id: u.id, name: u.username + (u.enabled ? "" : " (disabled)") }));
+    ignored.forEach((id) => { if (!rows.some((r) => r.id === id)) rows.push({ id, name: `Unknown account (${id})` }); });
+    let html = adminUsersError ? `<span class="help status-err">Couldn't load accounts: ${esc(adminUsersError)} <button class="link" type="button" id="usersRetry">Try again</button></span>` : "";
+    html += rows.length ? `<div class="pills" role="group" aria-labelledby="ignoreLbl">${rows.map((r) =>
+      `<label class="pill"><input type="checkbox" data-user="${esc(r.id)}"${ignored.includes(r.id) ? " checked" : ""}>${esc(r.name)}</label>`).join("")}</div>`
+      : (adminUsersError ? "" : `<span class="help">No accounts to list.</span>`);
+    slot.innerHTML = html;
+    $$("[data-user]", slot).forEach((c) => c.addEventListener("change", () => {
+      const list = adminDraft.filters.ignore_users.filter((id) => id !== c.dataset.user);
+      if (c.checked) list.push(c.dataset.user);
+      adminDraft.filters.ignore_users = list;
+      markAdminDirty();
+    }));
+    const retry = $("#usersRetry", slot);
+    if (retry) retry.addEventListener("click", async () => {
+      retry.disabled = true;
+      try {
+        adminUsers = (await api("api/admin/users")).users || [];
+        adminUsersError = "";
+      } catch (e) {
+        if (expired) return;
+        if (isKeyProblem(e)) { showKeyOnly(e.code); return; }
+        adminUsersError = e.message;
+      }
+      renderUserPick();
+    });
+  }
+
+  function bindFiltersSub() {
+    const f = adminDraft.filters;
+    $("#fRemote").addEventListener("change", (e) => { f.only_remote = e.target.checked; markAdminDirty(); });
+    $("#fTranscode").addEventListener("change", (e) => { f.only_transcodes = e.target.checked; markAdminDirty(); });
+    $$("#panel-admin [data-media]").forEach((c) => c.addEventListener("change", () => {
+      f.media_types = f.media_types.filter((v) => v !== c.dataset.media);
+      if (c.checked) f.media_types.push(c.dataset.media);
+      markAdminDirty();
+    }));
+    $$("#panel-admin [data-library]").forEach((c) => c.addEventListener("change", () => {
+      f.libraries = f.libraries.filter((v) => v !== c.dataset.library);
+      if (c.checked) f.libraries.push(c.dataset.library);
+      markAdminDirty();
+    }));
+    renderUserPick();
+  }
+
+  function renderExtrasSub() {
+    const dr = adminDraft;
+    const nw = NOISE[dr.noise.mode] || {};
+    return `<div style="display:flex;flex-direction:column;gap:16px">
+      <section class="card">
+        <h2>Noise control</h2>
+        <div class="modes" role="radiogroup" aria-label="Noise control">${adminData.noise_modes.map((m) => {
+          const h = NOISE[m.value] || { title: m.label, text: "" };
+          return `<label class="mode"><input type="radio" name="noiseMode" value="${esc(m.value)}"${m.value === dr.noise.mode ? " checked" : ""}><span><b>${esc(h.title)}</b><span>${esc(h.text)}</span></span></label>`;
+        }).join("")}</div>
+        <label class="inline" id="noiseWindowField"${nw.window ? "" : " hidden"}><span id="noiseWindowLbl">${esc(nw.window || "")}</span><input type="number" class="num" id="noiseWindow" min="1" max="1440" step="1" inputmode="numeric" value="${esc(dr.noise.window_minutes || "")}">minutes</label>
+        <span class="help">Playback failures always come through.</span>
+      </section>
+      <section class="card">
+        <h2>On admin alerts</h2>
+        <div class="flexrow">
+          <label class="sw" hidden><input disabled type="checkbox" id="xPoster"${dr.attach_poster ? " checked" : ""}>Poster attachments (unavailable)</label>
+          <label class="sw"><input type="checkbox" id="xLink"${dr.silo_link ? " checked" : ""}>"Open in Silo" link</label>
+        </div>
+        <span class="help">Quiet hours and the urgent setting are on <button class="link" type="button" data-goto="account">Connection</button>.</span>
+      </section>
+      <section class="card">
+        <h2>Scheduled tasks</h2>
+        <span class="help">Health, weekly digest and new library content checks require schedules in Silo.</span>
+        <details>
+          <summary>How to schedule them</summary>
+          <ol class="help">
+            <li>Open <strong>Admin &gt; Plugins</strong> › Surify › scheduled tasks.</li>
+            <li>Set <strong>Surify server health check</strong> to every 5 minutes and <strong>Surify weekly digest</strong> to every 1 hour (each admin picks their own digest day and hour on the Alerts tab).</li>
+            <li>Set <strong>Surify new library content</strong> to every 2 minutes and enable its alert on the Alerts tab. It announces only additions after activation.</li>
+            <li><strong>Restart Silo.</strong> Schedule changes take effect after a restart.</li>
+          </ol>
+          <span class="help">Or with an admin API key (ID = this plugin's installation number):</span>
+          <pre>PUT /api/v2/admin/plugins/installations/ID/task-bindings/health_check
+{"enabled": true, "trigger": {"type": "interval", "interval_ms": 300000}}
+
+PUT /api/v2/admin/plugins/installations/ID/task-bindings/weekly_digest
+{"enabled": true, "trigger": {"type": "interval", "interval_ms": 3600000}}
+
+PUT /api/v2/admin/plugins/installations/ID/task-bindings/recently_added
+{"enabled": true, "trigger": {"type": "interval", "interval_ms": 120000}}</pre>
+        </details>
+      </section>
+      ${adminData.configured ? `<div class="dangerZone"><button class="btn ghost danger" type="button" id="adminRemove">Turn off and forget my admin alerts</button></div>` : ""}
+    </div>`;
+  }
+
+  function bindExtrasSub() {
+    const box = $("#panel-admin");
+    $$("input[name=noiseMode]", box).forEach((r) => r.addEventListener("change", () => {
+      adminDraft.noise.mode = r.value;
+      const nw = NOISE[r.value] || {};
+      $("#noiseWindowField").hidden = !nw.window;
+      $("#noiseWindowLbl").textContent = nw.window || "";
+      markAdminDirty();
+    }));
+    $("#noiseWindow").addEventListener("input", (e) => {
+      adminDraft.noise.window_minutes = e.target.value === "" ? 0 : Math.round(Number(e.target.value));
+      markAdminDirty();
+    });
+    $("#xPoster").addEventListener("change", (e) => { adminDraft.attach_poster = e.target.checked; markAdminDirty(); });
+    $("#xLink").addEventListener("change", (e) => { adminDraft.silo_link = e.target.checked; markAdminDirty(); });
+    const rm = $("#adminRemove");
+    if (rm) rm.addEventListener("click", removeAdmin);
+  }
+
+  function adminPayload() {
+    return {
+      alerts: adminDraft.alerts, filters: adminDraft.filters, noise: adminDraft.noise, limits: adminDraft.limits,
+      // Admin alerts follow the quiet hours on the Gotify account tab.
+      quiet: { enabled: false, start: "22:00", end: "07:00", silence_emergency: false },
+      digest: adminDraft.digest, attach_poster: adminDraft.attach_poster, silo_link: adminDraft.silo_link,
+      time_zone: browserZone(),
+    };
+  }
+
+  // Returns [message, input] when the admin settings can't be saved.
+  function adminProblemCheck() {
+    const n = adminDraft.noise;
+    if ((NOISE[n.mode] || {}).window && (!Number.isFinite(n.window_minutes) || n.window_minutes < 1 || n.window_minutes > 1440)) {
+      adminSub = "extras"; renderAdmin();
+      return ["Noise window: enter 1 to 1440 minutes.", $("#noiseWindow")];
+    }
+    for (const t of adminData.alert_types) {
+      for (const lim of t.limits || []) {
+        const v = adminDraft.limits[lim.key] || 0;
+        const bad = !Number.isFinite(v) || v < 0 || v > lim.max ? `${t.label}: enter a limit from 1 to ${lim.max}${lim.optional ? ", or leave it empty" : ""}.`
+          : (!lim.optional && adminDraft.alerts[t.key].enabled && !v) ? `${t.label}: set a limit, or switch it off.` : "";
+        if (bad) {
+          adminSub = "alerts"; renderAdmin();
+          return [bad, $(`#panel-admin [data-limit="${CSS.escape(lim.key)}"]`)];
+        }
+      }
+    }
+    return null;
+  }
+
+  async function saveAdmin() {
+    try {
+      const res = await api("api/admin/alerts", "PUT", adminPayload());
+      adminData.configured = true;
+      adminData.settings = res.settings;
+      adminDraft = draftFrom(res.settings);
+      adminDirty = false;
+      renderAdmin();
+      return res.warning || "";
+    } catch (e) {
+      if (isKeyProblem(e)) { showKeyOnly(e.code); return "Admin alerts weren't saved: " + (KEY_PROBLEMS[e.code] || e.message); }
+      throw e;
+    }
+  }
+
+  async function removeAdmin() {
+    if (!confirm("Turn off your admin alerts and forget these settings?")) return;
+    try {
+      await api("api/admin/alerts", "DELETE");
+      adminSub = "alerts";
+      await loadAdmin();
+      setSaveMsg("Admin alerts removed", "ok");
+    } catch (e) {
+      if (expired) return;
+      if (isKeyProblem(e)) { showKeyOnly(e.code); return; }
+      setSaveMsg(e.message, "err");
+    }
+  }
+
+  // ---------- Silo API keys ----------
+
+  function renderKeys() {
+    const box = $("#panel-keys");
+    const k = state && state.admin_keys;
+    if (!box || !k) return;
+    // Re-rendering mustn't lose the last result or the form's state.
+    const keepResult = $("#setupResult") ? $("#setupResult").innerHTML : "";
+    const keepControl = $("#setupControl") ? $("#setupControl").checked : false;
+    const keepRevoke = $("#setupRevoke") ? $("#setupRevoke").checked : true;
+    const needsKey = adminState === "key";
+    const bad = needsKey && adminProblem === "monitor_key_rejected" ? "Rejected"
+      : needsKey && adminProblem === "monitor_key_scope" ? "Wrong scope" : "";
+    const row = (set, label, scope, use, badText) => `<div class="keyrow">
+      <span class="dot${!set ? " off" : badText ? " warn" : ""}"></span>
+      <span class="grow"><b>${esc(label)}</b><small>${esc(scope)} · ${esc(use)}</small></span>
+      <span class="help ${set && !badText ? "status-ok" : badText ? "status-err" : ""}">${set ? (badText || (label === "Read-only" && adminState === "ready" ? "Working" : "Saved")) : "Not set"}</span></div>`;
+    const action = k.monitor_key_set ? "Replace keys" : "Create keys";
+    box.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:16px">
+      <section class="card">
+        <h2>Keys the plugin uses</h2>
+        <div class="cols" style="gap:10px">
+          ${row(k.monitor_key_set, "Read-only", "admin:monitor:read", "recipient checks, monitoring and server alerts", bad)}
+
+        </div>
+        ${needsKey ? `<span class="help status-err">${esc(KEY_PROBLEMS[adminProblem] || KEY_PROBLEMS.monitor_key_missing)}</span>` : ""}
+      </section>
+      ${k.legacy_key_stored ? `<div class="notice warn"><strong>The full-access key from version 0.2.0 is still stored.</strong>The plugin can use it once to create the read-only key, then revokes it.
+        <div class="actions"><button class="btn primary" type="button" id="legacyBtn">Replace the old full-access key</button></div></div>` : ""}
+      <section class="card">
+        <h2>${action}</h2>
+        <span class="help">Paste a full-access key from Admin &gt; API Keys. The plugin makes scoped keys from it and never stores it.</span>
+        <div class="field"><label class="lbl" for="setupKey">Full-access key</label><input type="password" id="setupKey" autocomplete="off" spellcheck="false" placeholder="sa_…"></div>
+        <div class="flexrow">
+          <label class="sw"><input type="checkbox" id="setupRevoke"${keepRevoke ? " checked" : ""}>Delete this key from Silo afterwards</label>
+
+        </div>
+        <div class="actions"><button class="btn primary" type="button" id="setupBtn">${action}</button></div>
+        <div id="setupResult" role="status" aria-live="polite">${keepResult}</div>
+      </section>
+      </div>`;
+    $("#setupBtn").addEventListener("click", () => runSetup("paste"));
+    const legacy = $("#legacyBtn");
+    if (legacy) legacy.addEventListener("click", () => runSetup("legacy"));
+  }
+
+  function showSetupResult(kind, title, details) {
+    $("#setupResult").innerHTML = `<div class="notice ${kind}"><strong>${esc(title)}</strong>${details.length ? `<ul>${details.map((d) => `<li>${esc(d)}</li>`).join("")}</ul>` : ""}</div>`;
+  }
+
+  async function runSetup(source) {
+    const body = { source, control: false };
+    const pasted = $("#setupKey").value.trim();
+    if (source === "paste") {
+      if (!pasted) { showSetupResult("error", "Paste a full-access Silo API key first.", []); $("#setupKey").focus(); return; }
+      body.key = pasted;
+      body.revoke = $("#setupRevoke").checked;
+    } else if (!confirm("Use the old full-access key to create the read-only key, then revoke the old key in Silo?")) {
+      return;
+    }
+    $$("#panel-keys input, #panel-keys button").forEach((e) => (e.disabled = true));
+    $("#setupResult").innerHTML = `<p class="help">Setting up the key. This takes a few seconds…</p>`;
+    let res = null, error = null;
+    try { res = await api("api/admin/key-setup", "POST", body); } catch (e) { error = e; }
+    if (expired) return;
+    if (res) {
+      state.admin_keys = res.keys;
+    } else {
+      // A request that timed out may still have finished on the server.
+      try { const fresh = await api("api/state"); if (fresh.admin_keys) state.admin_keys = fresh.admin_keys; } catch { /* keep the old status */ }
+      if (expired) return;
+    }
+    renderKeys();
+    if (res) {
+      const details = [...(res.details || [])];
+      if (res.saved) details.push("Reload this page to activate administrator notifications and server monitoring.");
+      showSetupResult(res.level === "warn" ? "warn" : "ok", res.title, details);
+    } else {
+      if (source === "paste") $("#setupKey").value = pasted;
+      showSetupResult("error", "The key setup didn't finish.", [error.message]);
+    }
+    renderRailFoot();
+    // A new key may make the alert settings available (or fix a broken key).
+    if (state.admin_keys.monitor_key_set && (res ? res.saved : true) && adminState !== "ready") loadAdmin();
+  }
+
+  window.addEventListener("hashchange", () => { if (state) showTab(location.hash.slice(1)); });
+  window.addEventListener("beforeunload", (e) => { if ((dirty || adminDirty) && !expired) e.preventDefault(); });
+
+  init();
+})();
+</script>
+</body>
+</html>

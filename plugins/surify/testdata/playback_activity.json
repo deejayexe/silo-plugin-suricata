@@ -1,0 +1,19 @@
+{
+  "hours": 168,
+  "bucket_seconds": 86400,
+  "from": "2026-10-27T20:00:00.000Z",
+  "to": "2026-11-03T20:00:00.000Z",
+  "buckets": [
+    {"hour": "2026-10-30T00:00:00.000Z", "direct": 40, "remux": 20, "transcode": 20},
+    {"hour": "2026-10-31T00:00:00.000Z", "direct": 30, "remux": 10, "transcode": 8}
+  ],
+  "reliability": {
+    "sessions_started": 128,
+    "transcode_starts": 41,
+    "finalized_sessions": 120,
+    "completed_sessions": 94,
+    "completion_rate": 0.7833,
+    "unique_profiles": 6
+  },
+  "profiles_active_24h": 3
+}

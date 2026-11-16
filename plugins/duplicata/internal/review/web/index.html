@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Duplicata Versions</title><link rel="stylesheet" href="./assets/app.css"></head>
+<body><main>
+<header><div><a class="admin-link" href="/admin" target="_top">← Silo admin</a><div class="brand"><img src="./assets/logo.png" alt="Duplicata" width="88" height="88"><h1>Duplicata Versions</h1></div><p class="intro">Version management for your Silo libraries. Review and remove duplicate items. <span>Choose what to keep. File deletion is optional and permanent; another verified file path must remain.</span></p></div></header>
+<section class="connection-strip" aria-label="Silo connection"><span class="connection-heading" role="status"><span id="connection-icon" class="connection-icon" data-state="connecting" aria-hidden="true"></span><strong id="connection-state">Connecting…</strong></span><span id="connection" role="status"></span><span id="mode">Deletion disabled</span><span class="file-check">Files verified before deletion</span></section>
+<nav class="view-tabs" aria-label="Analysis views"><button id="analysis-tab" aria-pressed="true">Analysis</button><button id="history-tab" aria-pressed="false">History</button></nav>
+<p id="error" class="error" role="alert"></p><p id="operation-message" class="success" role="status"></p>
+<section id="history-panel" hidden><h2>Analysis history</h2><p>Memory only: up to 10 previous analyses within a 64 MiB serialized-data budget. Older entries are removed automatically; analyses exceeding this budget cannot be archived. Use Continue review to reopen an analysis without repeating the scan. Deletion requires a complete analysis and fresh file checks. Restarting Silo or the plugin clears history.</p><div id="history-list"></div></section>
+<section id="analysis-panel">
+<section class="controls"><label>Library<select id="library"><option value="">Checking connection…</option></select></label><button id="start" class="primary" disabled>Scan</button><button id="cancel" disabled>Stop</button></section>
+
+<section class="results-summary"><span id="status" role="status">No scan</span><h2 id="count">Groups to review · 0</h2><button id="clear" title="Save this analysis to history and clear the current view. No media files are deleted.">Save to history</button></section><progress id="progress" value="0" max="1" aria-label="Scan progress"></progress>
+<p id="reclaimed" class="space-summary" hidden></p>
+<p id="viewing" role="status"></p><button id="back-current" hidden>Back to current analysis</button>
+<section id="groups" aria-label="Version groups"></section>
+<nav class="pages" aria-label="Result pages"><button id="previous" disabled>Previous</button><span id="page"></span><button id="next" disabled>Next</button></nav>
+</section>
+<footer>Library version management for Silo · Administrator access · Results are cleared when the plugin restarts.</footer>
+<dialog id="delete-dialog" aria-labelledby="delete-title"><h2 id="delete-title">Delete file</h2><p>This is permanent. For symbolic library paths, the resolved file below is deleted. Other links are left untouched. Released space is estimated from allocated file blocks; hardlinks may retain the data. Open files, shared blocks and filesystem snapshots can delay or prevent actual space recovery. Empty episode folders may be removed within the authorized root.</p><strong>Path to delete</strong><p id="delete-path"></p><strong>Path to retain</strong><p id="keep-path"></p><p id="delete-error" class="error" role="alert"></p><div class="dialog-actions"><button id="dismiss-delete">Cancel</button><button id="confirm-delete" class="danger">Delete file</button></div></dialog>
+</main><script src="./assets/app.js"></script></body></html>

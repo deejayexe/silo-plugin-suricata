@@ -1,0 +1,185 @@
+{
+  "plugin_id": "silo.surimatrix",
+  "version": "0.0.1",
+  "silo_api_version": "v1",
+  "category": "Notifications",
+  "supported_platforms": [
+    {
+      "os": "linux",
+      "arch": "amd64"
+    },
+    {
+      "os": "linux",
+      "arch": "arm64"
+    }
+  ],
+  "capabilities": [
+    {
+      "type": "scheduled_task.v1",
+      "id": "recently_added",
+      "display_name": "Surimatrix · New content",
+      "description": "Send encrypted notifications for newly added content. Schedule every minute."
+    },
+    {
+      "type": "http_routes.v1",
+      "id": "surimatrix_ui",
+      "display_name": "Surimatrix",
+      "description": "Administrator settings and encrypted delivery tests."
+    }
+  ],
+  "global_config_schema": [
+    {
+      "key": "matrix",
+      "title": "Surimatrix",
+      "description": "Send Silo library notifications directly to an encrypted Matrix room.",
+      "json_schema": "{\"type\": \"object\", \"properties\": {\"enabled\": {\"type\": \"boolean\", \"title\": \"Automatic notifications\", \"description\": \"Enable delivery of new library content. Schedule the New content task every minute.\"}, \"homeserver\": {\"type\": \"string\", \"title\": \"Matrix homeserver\", \"description\": \"HTTPS base URL of the Matrix server, not the Element website.\"}, \"user_id\": {\"type\": \"string\", \"title\": \"Matrix bot account\", \"description\": \"Full Matrix user ID for the account that sends notifications.\"}, \"access_token\": {\"type\": \"string\", \"title\": \"Matrix access token\", \"description\": \"Access token for a dedicated Surimatrix device. Keep the same token when updating.\"}, \"device_id\": {\"type\": \"string\", \"title\": \"Matrix device ID\", \"description\": \"Device ID belonging to the bot access token. Do not reuse an Element device.\"}, \"room_id\": {\"type\": \"string\", \"title\": \"Encrypted room ID\", \"description\": \"Internal Matrix room ID. The bot must have joined this encrypted room.\"}, \"state_dir\": {\"type\": \"string\", \"title\": \"Persistent storage directory\", \"description\": \"Absolute writable directory inside Silo\\u2019s container. Stores Matrix keys and pending notifications.\"}, \"silo_url\": {\"type\": \"string\", \"title\": \"Silo server URL\", \"description\": \"HTTPS base URL of this Silo server.\"}, \"silo_key\": {\"type\": \"string\", \"title\": \"Silo administrator API key\", \"description\": \"One administrator API key without scope restrictions, used for both library changes and item posters. A monitor-only key cannot read item details.\"}, \"libraries\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}, \"title\": \"Automatic library filter (optional)\", \"description\": \"Advanced library ID filter for automatic notifications. Leave empty for all libraries. Manual sends have a library selector.\"}, \"silo_username\": {\"type\": \"string\", \"title\": \"Silo username (optional)\", \"description\": \"Normal username of the API key owner. Leave empty to detect it automatically. The primary profile is selected automatically.\"}, \"message_title\": {\"type\": \"string\", \"default\": \"Surinas Silo 3.0\\ud83c\\udf7f\", \"title\": \"Notification title\", \"description\": \"First line of every notification. Leave empty to use Surinas Silo 3.0\\ud83c\\udf7f.\"}}, \"additionalProperties\": false}",
+      "admin_form": {
+        "fields": [
+          {
+            "key": "enabled",
+            "label": "Automatic notifications",
+            "control": "ADMIN_FORM_CONTROL_SWITCH",
+            "description": "Enable delivery of new library content. Schedule the New content task every minute."
+          },
+          {
+            "key": "homeserver",
+            "label": "Matrix homeserver",
+            "control": "ADMIN_FORM_CONTROL_TEXT",
+            "description": "HTTPS base URL of the Matrix server, not the Element website.",
+            "placeholder": "https://matrix.example.com"
+          },
+          {
+            "key": "user_id",
+            "label": "Matrix bot account",
+            "control": "ADMIN_FORM_CONTROL_TEXT",
+            "description": "Full Matrix user ID for the account that sends notifications.",
+            "placeholder": "@silo-bot:example.com"
+          },
+          {
+            "key": "access_token",
+            "label": "Matrix access token",
+            "control": "ADMIN_FORM_CONTROL_PASSWORD",
+            "secret": true,
+            "description": "Access token for a dedicated Surimatrix device. Keep the same token when updating."
+          },
+          {
+            "key": "device_id",
+            "label": "Matrix device ID",
+            "control": "ADMIN_FORM_CONTROL_TEXT",
+            "description": "Device ID belonging to the bot access token. Do not reuse an Element device.",
+            "placeholder": "SURIMATRIX"
+          },
+          {
+            "key": "room_id",
+            "label": "Encrypted room ID",
+            "control": "ADMIN_FORM_CONTROL_TEXT",
+            "description": "Internal Matrix room ID. The bot must have joined this encrypted room.",
+            "placeholder": "!room:example.com"
+          },
+          {
+            "key": "state_dir",
+            "label": "Persistent storage directory",
+            "control": "ADMIN_FORM_CONTROL_TEXT",
+            "description": "Absolute writable directory inside Silo’s container. Stores Matrix keys and pending notifications.",
+            "placeholder": "/config/surimatrix"
+          },
+          {
+            "key": "silo_url",
+            "label": "Silo server URL",
+            "control": "ADMIN_FORM_CONTROL_TEXT",
+            "description": "HTTPS base URL of this Silo server.",
+            "placeholder": "https://silo.example.com"
+          },
+          {
+            "key": "silo_key",
+            "label": "Silo administrator API key",
+            "control": "ADMIN_FORM_CONTROL_PASSWORD",
+            "secret": true,
+            "description": "One administrator API key without scope restrictions, used for both library changes and item posters. A monitor-only key cannot read item details."
+          },
+          {
+            "key": "silo_username",
+            "label": "Silo username (optional)",
+            "description": "Normal username of the API key owner. Leave empty to detect it automatically. The primary profile is selected automatically.",
+            "control": "ADMIN_FORM_CONTROL_TEXT",
+            "placeholder": "admin"
+          },
+          {
+            "key": "message_title",
+            "control": "ADMIN_FORM_CONTROL_TEXT",
+            "label": "Notification title",
+            "description": "First line of every notification. Leave empty to use Surinas Silo 3.0🍿.",
+            "placeholder": "Surinas Silo 3.0🍿"
+          }
+        ],
+        "submit_label": "Save settings"
+      }
+    }
+  ],
+  "http_routes": [
+    {
+      "id": "panel",
+      "method": "GET",
+      "path": "/",
+      "access": "admin",
+      "navigable": true,
+      "navigation_label": "Surimatrix",
+      "navigation_kind": "admin"
+    },
+    {
+      "id": "logo",
+      "method": "GET",
+      "path": "/logo.png",
+      "access": "admin"
+    },
+    {
+      "id": "test",
+      "method": "POST",
+      "path": "/api/test",
+      "access": "admin"
+    },
+    {
+      "id": "check-silo",
+      "method": "POST",
+      "path": "/api/check-silo",
+      "access": "admin"
+    },
+    {
+      "id": "test-poster",
+      "method": "POST",
+      "path": "/api/test-poster",
+      "access": "admin"
+    },
+    {
+      "id": "libraries",
+      "method": "GET",
+      "path": "/api/libraries",
+      "access": "admin"
+    },
+    {
+      "id": "send-latest-movie",
+      "method": "POST",
+      "path": "/api/send-latest-movie",
+      "access": "admin"
+    },
+    {
+      "id": "send-latest-episode",
+      "method": "POST",
+      "path": "/api/send-latest-episode",
+      "access": "admin"
+    }
+  ],
+  "presentation": {
+    "display_name": "Surimatrix",
+    "summary": "Encrypted Matrix notifications for new Silo library content.",
+    "description_markdown": "Send new movies and episodes directly from Silo to an encrypted Matrix room, with native poster attachments, episode grouping and persistent delivery state. Administrator access only.",
+    "setup_markdown": "Configure the Silo administrator API key, Matrix bot, encrypted room and a writable persistent directory. Open Surimatrix to check the connection and send a poster test. Enable automatic notifications and schedule the New content task every minute.",
+    "homepage_url": "https://github.com/deejayexe/silo-plugin-suricata/tree/0.0.1/plugins/surimatrix",
+    "source_url": "https://github.com/deejayexe/silo-plugin-suricata/tree/0.0.1/plugins/surimatrix",
+    "support_url": "https://github.com/deejayexe/silo-plugin-suricata/issues",
+    "changelog_url": "https://github.com/deejayexe/silo-plugin-suricata/releases",
+    "publisher_name": "deejayexe",
+    "publisher_url": "https://github.com/deejayexe",
+    "license_spdx": "MIT"
+  }
+}

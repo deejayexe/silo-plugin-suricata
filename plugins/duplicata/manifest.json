@@ -1,0 +1,227 @@
+{
+  "plugin_id": "community.duplicata-versions",
+  "version": "0.1.0",
+  "silo_api_version": "v1",
+  "supported_platforms": [
+    {
+      "os": "linux",
+      "arch": "amd64"
+    },
+    {
+      "os": "linux",
+      "arch": "arm64"
+    }
+  ],
+  "capabilities": [
+    {
+      "type": "http_routes.v1",
+      "id": "review",
+      "display_name": "Duplicata Versions",
+      "description": "Review and manage versions within a Silo library."
+    }
+  ],
+  "global_config_schema": [
+    {
+      "key": "connection",
+      "title": "Silo connection",
+      "description": "Administrator API key with access to the catalog and administrative file queries.",
+      "json_schema": "{\"type\": \"object\", \"properties\": {\"api_key\": {\"type\": \"string\", \"writeOnly\": true, \"maxLength\": 512}, \"base_url\": {\"type\": \"string\", \"maxLength\": 2048}, \"profile_id\": {\"type\": \"string\", \"maxLength\": 200}}, \"additionalProperties\": false}",
+      "admin_form": {
+        "fields": [
+          {
+            "key": "api_key",
+            "label": "Administrator API key",
+            "control": 3,
+            "secret": true,
+            "description": "Stored by Silo. Leave blank when editing to keep the saved secret.",
+            "placeholder": "sa_…"
+          },
+          {
+            "key": "base_url",
+            "label": "Server URL (optional)",
+            "control": 1,
+            "placeholder": "Blank: internal Silo address",
+            "description": "Without /api/v2. Set only when an explicit server address is needed."
+          },
+          {
+            "key": "profile_id",
+            "label": "Profile name (optional)",
+            "control": 1,
+            "placeholder": "Automatic: primary profile",
+            "description": "Uses the primary profile of the API key account by default. A profile ID is also accepted."
+          }
+        ],
+        "submit_label": "Save"
+      }
+    },
+    {
+      "key": "analysis",
+      "title": "Scan",
+      "description": "Up to 100,000 items per query, including episodes; scans stop after 2 hours. Respects Retry-After and stops if Silo continues rejecting requests.",
+      "json_schema": "{\"type\": \"object\", \"properties\": {\"requests_per_second\": {\"type\": \"number\", \"minimum\": 1, \"maximum\": 100, \"default\": 100}, \"concurrency\": {\"type\": \"integer\", \"minimum\": 1, \"maximum\": 16, \"default\": 16}}, \"additionalProperties\": false}",
+      "admin_form": {
+        "fields": [
+          {
+            "key": "requests_per_second",
+            "label": "Maximum requests per second",
+            "control": 4,
+            "default_value": 100,
+            "validation": {
+              "has_min": true,
+              "min": 1,
+              "has_max": true,
+              "max": 100
+            },
+            "description": "1–100 requests/s. Default: 100. Use a dedicated plugin API key configured for 100 requests/s, 6000/min and burst 100. Retry-After is respected."
+          },
+          {
+            "key": "concurrency",
+            "label": "Concurrent requests",
+            "control": 4,
+            "default_value": 16,
+            "validation": {
+              "has_min": true,
+              "min": 1,
+              "has_max": true,
+              "max": 16
+            },
+            "description": "1–16 simultaneous requests. Default: 16. The shared plugin request rate still applies."
+          }
+        ],
+        "submit_label": "Save"
+      }
+    },
+    {
+      "key": "deletion",
+      "title": "File deletion",
+      "description": "Disabled by default. Requires write access. Empty episode folders are cleaned up within the authorized root; companion files are retained.",
+      "json_schema": "{\"type\": \"object\", \"properties\": {\"delete_enabled\": {\"type\": \"boolean\", \"default\": false}, \"media_roots\": {\"type\": \"string\", \"maxLength\": 4096}}, \"additionalProperties\": false}",
+      "admin_form": {
+        "fields": [
+          {
+            "key": "delete_enabled",
+            "label": "Enable file deletion",
+            "control": 5,
+            "default_value": false
+          },
+          {
+            "key": "media_roots",
+            "label": "Authorized folders (one absolute path per line)",
+            "control": 2,
+            "placeholder": "/share/mix",
+            "description": "Real paths inside the Silo container. Library symlinks must resolve inside these folders. The filesystem root / is not allowed."
+          }
+        ],
+        "submit_label": "Save"
+      }
+    }
+  ],
+  "http_routes": [
+    {
+      "id": "page",
+      "method": "GET",
+      "path": "/",
+      "access": "admin",
+      "navigable": true,
+      "navigation_label": "Duplicata Versions",
+      "navigation_kind": "admin"
+    },
+    {
+      "id": "status",
+      "method": "GET",
+      "path": "/status",
+      "access": "admin"
+    },
+    {
+      "id": "results",
+      "method": "GET",
+      "path": "/results",
+      "access": "admin"
+    },
+    {
+      "id": "check",
+      "method": "GET",
+      "path": "/check",
+      "access": "admin"
+    },
+    {
+      "id": "libraries",
+      "method": "GET",
+      "path": "/libraries",
+      "access": "admin"
+    },
+    {
+      "id": "scan",
+      "method": "POST",
+      "path": "/scan",
+      "access": "admin"
+    },
+    {
+      "id": "cancel",
+      "method": "POST",
+      "path": "/cancel",
+      "access": "admin"
+    },
+    {
+      "id": "clear",
+      "method": "POST",
+      "path": "/clear",
+      "access": "admin"
+    },
+    {
+      "id": "assets",
+      "method": "GET",
+      "path": "/assets/*",
+      "access": "admin"
+    },
+    {
+      "id": "poster",
+      "method": "GET",
+      "path": "/poster",
+      "access": "admin"
+    },
+    {
+      "id": "delete-preview",
+      "method": "POST",
+      "path": "/delete/preview",
+      "access": "admin"
+    },
+    {
+      "id": "delete-confirm",
+      "method": "POST",
+      "path": "/delete/confirm",
+      "access": "admin"
+    },
+    {
+      "id": "history",
+      "method": "GET",
+      "path": "/history",
+      "access": "admin"
+    },
+    {
+      "id": "history-remove",
+      "method": "POST",
+      "path": "/history/remove",
+      "access": "admin"
+    },
+    {
+      "id": "history-restore",
+      "method": "POST",
+      "path": "/history/restore",
+      "access": "admin"
+    }
+  ],
+  "category": "tools",
+  "presentation": {
+    "display_name": "Duplicata Versions",
+    "summary": "Version management for your Silo libraries. Review and remove duplicate items.",
+    "description_markdown": "Compare movie and episode versions by path, size, codecs, duration and edition. Optional manual deletion retains another verified path. Hardlinks are supported. No direct database access. Includes resumable in-memory analysis history and responsive mobile version cards. Shows estimated released space per deleted file and per analysis, including history.",
+    "setup_markdown": "1. Save an administrator API key.\n2. Open Duplicata Versions, check the connection and scan a library.\n3. To delete files, configure authorized real folders, enable deletion and allow write access in the Silo container. Scan again after changing settings.\n4. Review the resolved path and retained copy before confirming. Deletion is permanent. Silo updates its catalog on its next library scan.\n\nResults are held in memory. Use at your own risk; you are responsible for accidental deletion and misuse.",
+    "publisher_name": "deejayexe",
+    "license_spdx": "MIT",
+    "homepage_url": "https://github.com/deejayexe/silo-plugin-suricata/tree/0.0.1/plugins/duplicata",
+    "source_url": "https://github.com/deejayexe/silo-plugin-suricata/tree/0.0.1/plugins/duplicata",
+    "support_url": "https://github.com/deejayexe/silo-plugin-suricata/issues",
+    "changelog_url": "https://github.com/deejayexe/silo-plugin-suricata/releases"
+  }
+}

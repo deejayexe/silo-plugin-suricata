@@ -1,0 +1,5 @@
+Surify (formerly Gotify Notifications) adapts Silo Pushover Notifications by Josh Black.
+Source: https://github.com/JoshTheBlack/silo-pushover-notifications
+Upstream commit: 047abf14b09e0b70361e86240ab5c21f549a584d
+Original code: Copyright (c) 2026 Josh Black, MIT License (see LICENSE).
+Gotify adaptation: Copyright (c) 2026 deejayexe, MIT License.

@@ -1,0 +1,19 @@
+{
+  "available": true,
+  "sampled_at": "2026-11-03T19:59:45.000Z",
+  "stale": false,
+  "gpu": [],
+  "system": {
+    "cpu_pct": 12,
+    "load1": 0.8,
+    "cores": 8,
+    "mem_used_mb": 8192,
+    "mem_total_mb": 16384,
+    "net_rx_bps": 1000,
+    "net_tx_bps": 2000,
+    "disks": [
+      {"role": "scratch", "scratch": true, "used_gb": 20.5, "total_gb": 100},
+      {"role": "library-1", "used_gb": 600, "total_gb": 1000}
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+/dist/
+/release/
+/plugin
+.env
+.env.*
+go.work
+go.work.sum
+
+__pycache__/
+*.pyc

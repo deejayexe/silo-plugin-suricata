@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Surimatrix</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#131a24;color:#eef2f8}*{box-sizing:border-box}body{max-width:920px;margin:40px auto;padding:0 24px 48px}header{display:flex;align-items:center;gap:24px;margin-bottom:32px}.logo{width:132px;max-width:28vw;height:auto}h1{font-size:30px;margin:0 0 8px}h2{font-size:19px;margin:0 0 10px}p{color:#b9c5d5;line-height:1.65;margin:8px 0 18px}.card{border:1px solid #303c4e;border-radius:14px;background:#192331;padding:24px;margin:18px 0}.actions{display:flex;flex-wrap:wrap;gap:10px}button,select{font:inherit;border-radius:8px;padding:11px 16px}button{background:#7ee6c6;color:#102720;border:0;cursor:pointer}button.secondary{background:#28364b;color:#eef2f8;border:1px solid #485970}button:disabled{opacity:.5;cursor:wait}label{display:block;margin:16px 0 8px;font-weight:600}select{width:100%;max-width:480px;background:#131a24;color:#eef2f8;border:1px solid #485970;margin-bottom:16px}.back-link{display:inline-flex;align-items:center;gap:8px;color:#b9c5d5;text-decoration:none;padding:8px 0;margin-bottom:24px;font-size:14px}.back-link:hover{color:#7ee6c6}.back-link:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid #7ee6c6;outline-offset:4px}.feedback{display:flex;gap:12px;padding:16px;margin-top:20px;border:1px solid #40556d;background:#172637;border-radius:10px;line-height:1.5;overflow-wrap:anywhere}.feedback[hidden]{display:none}.feedback-icon{font-size:19px;line-height:24px;flex-shrink:0}.feedback-title{display:block;font-size:15px}.feedback-body{white-space:pre-wrap;margin-top:5px;color:#c5d3e2;font-size:14px}.feedback.success{border-color:#387b66;background:#142d27}.feedback.success .feedback-icon{color:#7ee6c6}.feedback.error{border-color:#a4555e;background:#352129}.feedback.error .feedback-icon{color:#ffb5b5}.feedback.warning{border-color:#9a7b38;background:#302b1c}.feedback.warning .feedback-icon{color:#f5d88b}.feedback.pending .feedback-icon{width:18px;height:18px;border:2px solid #4e687a;border-top-color:#7ee6c6;border-radius:50%;animation:spin .8s linear infinite;margin-top:3px}@keyframes spin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.feedback.pending .feedback-icon{animation:none}}#library-status{display:block;margin-bottom:14px}#library-status:empty{display:none}small{color:#a9b8cb}a{color:#7ee6c6}@media(max-width:540px){body{margin-top:24px;padding:0 16px 32px}header{gap:16px}.logo{width:96px}h1{font-size:25px}.card{padding:18px}.actions button{width:100%}}
+</style></head><body>
+<nav aria-label="Administration"><a class="back-link" href="/admin"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Back to Silo</a></nav>
+<header><img class="logo" src="./logo.png" alt="Surimatrix"><div><h1>Surimatrix</h1><p>New library content, delivered to your encrypted Matrix room.</p><small>Silo notifications · 0.0.1</small></div></header>
+<section class="card"><h2>Connection checks</h2><p>Check your Silo account and primary profile, then send a real library poster or the Surimatrix logo to your Matrix room.</p><div class="actions"><button data-path="check-silo">Check Silo connection</button><button class="secondary" data-path="test-poster">Send sample poster</button><button class="secondary" data-path="test">Send encrypted logo</button></div><div class="feedback" role="status" aria-live="polite" aria-atomic="true" hidden><span class="feedback-icon" aria-hidden="true"></span><div><strong class="feedback-title"></strong><div class="feedback-body"></div></div></div></section>
+<section class="card"><h2>Send latest content</h2><p>Send the most recently added movie or episode from the selected library. Use this to check delivery or resend a notification. Each click sends a new message; automatic notification history stays unchanged.</p><label for="library">Library</label><select id="library"><option value="">All configured libraries</option></select><small id="library-status" role="status"></small><div class="actions"><button data-path="send-latest-movie">Send latest movie</button><button data-path="send-latest-episode">Send latest episode</button></div><div class="feedback" role="status" aria-live="polite" aria-atomic="true" hidden><span class="feedback-icon" aria-hidden="true"></span><div><strong class="feedback-title"></strong><div class="feedback-body"></div></div></div></section>
+<section class="card"><h2>Automatic delivery</h2><p>Configure the connection and notification title in <b>Administration → Plugins → Surimatrix</b>. Enable automatic notifications and schedule <b>New content</b> every minute. New episodes are grouped for five minutes after the last addition, up to thirty minutes.</p><small>Use one Silo administrator API key and a dedicated Matrix device. Keep the persistent storage directory across restarts to retain encryption keys and delivery state.</small></section>
+<script>
+const library=document.querySelector('#library');
+async function loadLibraries(){try{const r=await fetch('./api/libraries');const d=await r.json();if(!r.ok)throw Error(d.error);for(const l of d.libraries){const option=document.createElement('option');option.value=l.id;option.textContent=l.name;library.append(option)}}catch(e){document.querySelector('#library-status').textContent='Library names are unavailable. You can still send from all configured libraries.'}}
+loadLibraries();
+function showFeedback(card,state,title,message){
+ const feedback=card.querySelector('.feedback');feedback.hidden=false;feedback.className='feedback '+state;
+ feedback.querySelector('.feedback-icon').textContent=({success:'✓',error:'!',warning:'!'})[state]||'';
+ feedback.querySelector('.feedback-title').textContent=title;feedback.querySelector('.feedback-body').textContent=message;
+ card.setAttribute('aria-busy',state==='pending'?'true':'false');
+ feedback.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'nearest'});
+}
+const actions={
+ 'check-silo':{pending:'Checking Silo connection…',success:'Silo connection verified'},
+ 'test-poster':{pending:'Sending sample poster…',success:'Sample poster sent'},
+ 'test':{pending:'Sending encrypted logo…',success:'Encrypted logo sent'},
+ 'send-latest-movie':{pending:'Sending latest movie…',success:'Latest movie sent'},
+ 'send-latest-episode':{pending:'Sending latest episode…',success:'Latest episode sent'}
+};
+for(const button of document.querySelectorAll('button[data-path]'))button.onclick=async()=>{
+ const buttons=document.querySelectorAll('button[data-path]'),card=button.closest('.card'),action=actions[button.dataset.path];
+ buttons.forEach(b=>b.disabled=true);showFeedback(card,'pending',action.pending,'Please wait while the request is processed.');
+ try{
+  const r=await fetch('./api/'+button.dataset.path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({library_id:library.value})});
+  const d=await r.json();
+  if(!r.ok){showFeedback(card,'error','Request failed',d.error||'Unable to complete the request.');}
+  else if(button.dataset.path==='check-silo'){
+   showFeedback(card,d.poster_available?'success':'warning',d.poster_available?action.success:'Connected · sample has no poster','Account: '+d.username+'\nPrimary profile: '+d.profile_name+'\nSample: '+d.sample_title+'\nPoster available: '+(d.poster_available?'yes':'no'));
+  }else if(d.poster_available===false){showFeedback(card,'warning','Notification sent without an image','Silo did not provide a poster. The encrypted text was sent to your Matrix room.');}
+  else{showFeedback(card,'success',action.success,'Open your Matrix room to view the encrypted image.');}
+ }catch(e){showFeedback(card,'error','Connection error','Unable to complete the request. Check your connection to Silo and try again.');}
+ finally{buttons.forEach(b=>b.disabled=false);card.setAttribute('aria-busy','false');}
+};
+</script></body></html>

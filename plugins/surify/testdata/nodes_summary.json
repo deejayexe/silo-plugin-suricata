@@ -1,0 +1,37 @@
+{
+  "items": [
+    {
+      "id": "3",
+      "name": "gpu-1",
+      "type": "transcode",
+      "enabled": true,
+      "healthy": true,
+      "active_jobs": 1,
+      "group": null,
+      "max_jobs": 4,
+      "max_bandwidth_kbps": null,
+      "egress_kbps": 8000,
+      "last_health_check": "2026-11-03T19:59:30.000Z",
+      "created_at": "2026-06-01T00:00:00.000Z",
+      "drain_requested": false,
+      "drain_state": "none"
+    },
+    {
+      "id": "4",
+      "name": "edge-1",
+      "type": "proxy",
+      "enabled": true,
+      "healthy": true,
+      "active_jobs": 0,
+      "group": "eu",
+      "max_jobs": null,
+      "max_bandwidth_kbps": null,
+      "egress_kbps": 0,
+      "last_health_check": "2026-11-03T19:59:31.000Z",
+      "created_at": "2026-06-02T00:00:00.000Z",
+      "drain_requested": false,
+      "drain_state": "none"
+    }
+  ],
+  "page": {"has_more": false}
+}
