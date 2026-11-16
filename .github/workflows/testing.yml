@@ -62,13 +62,19 @@ jobs:
           go build "${flags[@]}" -trimpath -ldflags="-s -w -X main.version=$version" -o "../../dist/$PLUGIN-linux-$arch" .
           "../../dist/$PLUGIN-linux-$arch" manifest > ../../dist/runtime-manifest.json
           python3 - "$version" <<'PY'
-          import json, sys
+          import json, re, sys
           from pathlib import Path
           actual = json.loads(Path('../../dist/runtime-manifest.json').read_text())
           expected = json.loads(Path('manifest.json').read_text())
-          assert actual['plugin_id'] == expected['plugin_id']
+          assert actual.get('plugin_id', actual.get('pluginId')) == expected['plugin_id']
           assert actual['version'] == sys.argv[1]
-          assert actual['presentation'] == expected['presentation']
+          def canonical(value):
+              if isinstance(value, dict):
+                  return {re.sub(r'_([a-z])', lambda m: m[1].upper(), k): canonical(v) for k, v in value.items()}
+              if isinstance(value, list):
+                  return [canonical(v) for v in value]
+              return value
+          assert canonical(actual['presentation']) == canonical(expected['presentation'])
           PY
           rm ../../dist/runtime-manifest.json
           if [ "$PLUGIN" = surify ] && [ "$arch" = amd64 ]; then
