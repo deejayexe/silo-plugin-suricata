@@ -222,6 +222,7 @@
     "homepage_url": "https://github.com/deejayexe/silo-plugin-suricata/tree/0.0.1/plugins/duplicata",
     "source_url": "https://github.com/deejayexe/silo-plugin-suricata",
     "support_url": "https://github.com/deejayexe/silo-plugin-suricata/issues",
-    "changelog_url": "https://github.com/deejayexe/silo-plugin-suricata/releases"
+    "changelog_url": "https://github.com/deejayexe/silo-plugin-suricata/releases",
+    "publisher_url": "https://github.com/deejayexe"
   }
 }
