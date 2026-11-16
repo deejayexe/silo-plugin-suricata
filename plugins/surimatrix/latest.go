@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,11 +15,35 @@ import (
 	runtime "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtime"
 )
 
-const defaultNotificationTitle = "Surinas Silo 3.0🍿"
+const defaultNotificationTitle = "Silo"
 
-func notificationTitle(c config) string {
-	if s := strings.TrimSpace(c.MessageTitle); s != "" {
+// The old hard-coded default is treated as automatic after an upgrade.
+// Store only its fingerprint; personal server names do not belong in the source.
+const legacyTitleFingerprint = "50f006b6a3df9866268f213d099568721da80adf55cfdedda0bae3bb90a34969"
+
+func notificationTitle(ctx context.Context, c config) string {
+	if s := strings.TrimSpace(c.MessageTitle); s != "" && fmt.Sprintf("%x", sha256.Sum256([]byte(s))) != legacyTitleFingerprint {
 		return s
+	}
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+	// This is the same public branding endpoint used by Silo's sign-in page.
+	// Its server_name resolves Settings > Identity, including Silo's own default.
+	var branding struct {
+		ServerName string `json:"server_name"`
+	}
+	if c.SiloURL != "" && siloJSON(ctx, c, "/api/v2/theme/branding", "", "", &branding) == nil {
+		if name := strings.TrimSpace(branding.ServerName); name != "" {
+			return name
+		}
+	}
+	// Older hosts may not serve the branding endpoint but expose the name via RPC.
+	if host := runtime.Host(); host != nil {
+		if info, err := host.GetHostInfo(ctx); err == nil && info.HostRole != "proxy" {
+			if name := strings.TrimSpace(info.HostName); name != "" {
+				return name
+			}
+		}
 	}
 	return defaultNotificationTitle
 }

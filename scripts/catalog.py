@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PLUGINS = ("surimatrix", "surify", "duplicata")
 
 
-def build(directory, repo, tag, build_number):
+def build(directory, repo, tag, build_number, stable=False):
     if not re.fullmatch(r"[\w.-]+/[\w.-]+", repo):
         raise ValueError("Expected owner/repository")
     if not re.fullmatch(r"[\w.-]+", tag):
@@ -23,9 +23,12 @@ def build(directory, repo, tag, build_number):
     entries, sums = [], []
     for name in PLUGINS:
         manifest = json.loads((ROOT / "plugins" / name / "manifest.json").read_text())
-        # Duplicata already has a stable 0.1.0. Its testing update must sort higher.
-        base = "0.1.1" if name == "duplicata" else manifest["version"]
-        manifest["version"] = f"{base}-dev.{build_number}"
+        if not re.fullmatch(r"\d+\.\d+\.\d+", manifest["version"]):
+            raise ValueError("Plugin source versions must be stable semantic versions")
+        if not stable:
+            # Duplicata's initial candidate follows its original stable 0.1.0.
+            base = "0.1.1" if name == "duplicata" and manifest["version"] == "0.1.0" else manifest["version"]
+            manifest["version"] = f"{base}-dev.{build_number}"
         manifest.pop("checksum", None)
         binaries = {}
         for platform in manifest["supported_platforms"]:
@@ -59,5 +62,6 @@ if __name__ == "__main__":
     parser.add_argument("--repo", required=True)
     parser.add_argument("--tag", required=True)
     parser.add_argument("--build-number", required=True)
+    parser.add_argument("--stable", action="store_true", help="Use each plugin's source version without a development suffix")
     args = parser.parse_args()
-    build(args.directory, args.repo, args.tag, args.build_number)
+    build(args.directory, args.repo, args.tag, args.build_number, stable=args.stable)

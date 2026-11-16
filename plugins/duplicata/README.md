@@ -8,10 +8,10 @@
 
 ## Install
 
-Add the Suricata testing catalog in Silo to install the plugin and receive updates:
+Add the Suricata catalog in Silo to install the plugin and receive updates:
 
 ```text
-https://raw.githubusercontent.com/deejayexe/silo-plugin-suricata/0.0.1/manifest.json
+https://raw.githubusercontent.com/deejayexe/silo-plugin-suricata/main/manifest.json
 ```
 
 For manual installation, download the Linux binary for your architecture from [Releases](https://github.com/deejayexe/silo-plugin-suricata/releases).

@@ -1,4 +1,4 @@
-# Suricata integration · 0.0.1
+# Suricata · Release 0.0.1
 
 ## Source revisions
 
@@ -20,22 +20,22 @@ Catalog presentation and source links point to this repository. Original license
 
 ## Build and publication
 
-`Suricata testing` tests all three plugins with the race detector and `go vet` on native Linux amd64 and arm64 runners. Surimatrix uses CGO, SQLite and `goolm` on Ubuntu 24.04. Surify also cross-compiles a static macOS arm64 package. Duplicata runs its existing packaging and JavaScript checks.
+The workflow tests all three plugins with the race detector and `go vet` on native Linux amd64 and arm64. Surimatrix uses CGO, SQLite and `goolm` on Ubuntu 24.04. Surify also builds macOS arm64. It validates each native runtime manifest and the combined catalog with the Silo SDK, then publishes real binaries, per-platform zips and SHA-256 checksums.
 
-Every build runs the native binary's `manifest` command and verifies identity, version and presentation. Combined catalog tests cover all plugin IDs, platform maps, real binary hashes, executable zip contents, missing binaries and invalid release metadata. The Silo SDK validates each catalog manifest after serialization.
+On `main`, the root `VERSION` controls the Suricata release tag, starting at `v0.0.1`. Each plugin keeps its own version in its source manifest; Duplicata retains its higher 0.1.1 version for update compatibility. Source and public catalog manifests carry matching versions. The generated `manifest.json` and `repository.json` catalogs are published back to the source branch only after all checks pass.
 
-After all checks pass, the workflow publishes an immutable prerelease with binaries, per-platform installation zips, checksums and catalog files. It updates only the `0.0.1` branch with identical `manifest.json` and `repository.json` catalogs. A source-commit check prevents publishing a stale catalog over newer source. It never pushes to `main` and does not mark testing releases as latest.
+For a future release, increment the root `VERSION` and the manifest versions of the plugins changed. Update Duplicata's own `VERSION` and default main version alongside its manifest. Unchanged plugins retain their versions. Release assets are immutable; existing release tags are not overwritten. A source-head check prevents publishing over newer source.
 
-Testing versions use `0.0.1-dev.RUN_ID.ATTEMPT` for Surify/Surimatrix. Duplicata uses `0.1.1-dev.RUN_ID.ATTEMPT` so that an existing stable 0.1.0 can receive the candidate update. Branch and suite name `0.0.1` are independent of the individual plugin versions. Avoid keeping the original and unified catalogs enabled together for the same plugin ID.
+The existing `0.0.1` testing branch and its catalog remain separate. Production installations should use only the `main` catalog for these plugin IDs.
 
-To run checks locally, use Go 1.27.4 and GCC for Surimatrix. In each plugin folder run `go test -race ./...` and `go vet ./...`, adding `-tags goolm` for Surimatrix. From the root run `python3 -m unittest discover -s tests -v`. The workflow contains the full build commands.
+## Release fixes
 
-## Validation on Silo
+All bundled plugin text is in English, including sample data used by tests. English Unicode fixtures retain coverage for non-ASCII notification content.
 
-Automated validation does not establish real-server behavior. Before promoting to `main`, use the shared catalog URL from the README and check:
+Surimatrix reads the server identity using Silo's public branding API. An explicit title remains an optional override. A fingerprint recognizes the retired bundled default on upgrade without retaining a personal name in source. Server renames are picked up on the next send. Tests cover identity lookup, renaming, custom overrides, unavailable branding and credential-free public requests.
 
-1. Silo lists all three plugins, chooses the correct platform and installs/updates each without losing settings.
-2. Surimatrix checks the Silo account, sends an encrypted poster visible in Element, and still decrypts after a Silo restart using the same persistent storage. Schedule New content and test a new movie and grouped episodes.
-3. Surify saves a Gotify administrator connection and sends a test. Check scoped-key validation, playback/server alerts, new-library-content delivery and task bindings. Ordinary users and secondary profiles must remain blocked.
-4. Duplicata connects and scans a library, displays versions and restores saved history. Keep deletion disabled for the first scan. If you test deletion, use disposable media inside an authorized folder and confirm that another verified copy remains.
-5. Record the Silo build, architecture and plugin versions used. Merge and production release remain pending real-server validation.
+Surify's control key was present in JSON schema without secret metadata. It is now declared as a password field and a write-only secret, alongside the monitoring key and Gotify application token. This lets Silo omit saved values from the configuration response and preserve them on blank edits. Regression checks cover secret declarations and ensure the status API exposes only configuration flags.
+
+## Local verification
+
+Use Go 1.27.4 and GCC for Surimatrix. In each plugin folder run `go test -race ./...` and `go vet ./...`, adding `-tags goolm` for Surimatrix. From the root run `python3 -m unittest discover -s tests -v`. The workflow contains the full build commands.

@@ -7,10 +7,10 @@ Surimatrix sends new Silo library content directly to an encrypted Matrix room. 
 Add this stable URL under **Administration → Plugins → Repositories**:
 
 ```text
-https://raw.githubusercontent.com/deejayexe/silo-plugin-suricata/0.0.1/manifest.json
+https://raw.githubusercontent.com/deejayexe/silo-plugin-suricata/main/manifest.json
 ```
 
-Refresh the repository and install Surimatrix. Silo selects Linux amd64 or arm64. Keep this URL for future updates. Each testing build publishes a version such as `0.0.1-dev.5` after both architectures pass their checks.
+Refresh the repository and install Surimatrix. Silo selects Linux amd64 or arm64. Keep this URL for future updates. Stable releases use the plugin version from its manifest and are published after both architectures pass their checks.
 
 The URL serves Silo's repository document with manifests, platform binaries and SHA-256 checksums. The source file `plugins/surimatrix/manifest.json` is not the update URL. Packages use CGO for SQLite and are built on Ubuntu 24.04; the Silo container needs compatible glibc. Alpine/musl or older environments need a build for their runtime.
 
@@ -27,7 +27,7 @@ The URL serves Silo's repository document with manifests, platform binaries and 
 | Matrix device ID | Device ID associated with that access token |
 | Encrypted room ID | Internal room ID, such as `!room:example.com` |
 | Persistent storage directory | Absolute writable path inside the Silo container, such as `/config/surimatrix` |
-| Notification title | Defaults to `Surinas Silo 3.0🍿`; set your own server name if preferred |
+| Notification title | Leave empty to use Settings → Identity → Server name; optional custom override |
 
 The Silo API key is used for library additions, account detection and item details with signed poster URLs. The primary profile is selected automatically. You do not need to enter a profile ID or a separate poster API key. If a Silo username is supplied, it must match the key's owner.
 
@@ -63,10 +63,10 @@ A manual notification without available artwork is sent as encrypted text. A fai
 
 Movies are sent on the next run. Episodes with a stable series ID are grouped by series, season and library: five minutes after the last addition, capped at thirty minutes. Groups wait for their catalog pagination window to finish. Episodes without a stable series ID are sent individually.
 
-Notifications use the configured title, followed by media type, library, title/year and available metadata. For example:
+Notifications use your Silo server name by default, or an explicit custom title, followed by media type, library, title/year and available metadata. For example:
 
 ```text
-Surinas Silo 3.0🍿
+Silo
 🎬 🆕 New movie in Movies
 Title: Example (2026)
 Genre: Comedy
@@ -109,3 +109,7 @@ go vet -tags goolm ./...
 ```
 
 GitHub Actions tests, builds and publishes amd64/arm64 packages and the stable update document. Source dependencies are pinned in `go.mod` and `go.sum`; see `THIRD_PARTY.md` for licenses.
+
+## Automatic server identity
+
+With the notification title left empty, Surimatrix reads `server_name` from Silo's public `GET /api/v2/theme/branding` endpoint without sending an API key. It reflects server-name changes on the next notification. The plugin host's identity is a compatibility fallback; if identity cannot be read, the neutral title `Silo` keeps delivery working. A previously bundled default is recognized on upgrade and treated as automatic. No personal server name is stored in the release source or defaults.

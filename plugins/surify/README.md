@@ -8,10 +8,10 @@
 
 ## Install
 
-Add the Suricata testing catalog in Silo under **Administration → Plugins → Repositories**, then select Surify:
+Add the Suricata catalog in Silo under **Administration → Plugins → Repositories**, then select Surify:
 
 ```text
-https://raw.githubusercontent.com/deejayexe/silo-plugin-suricata/0.0.1/manifest.json
+https://raw.githubusercontent.com/deejayexe/silo-plugin-suricata/main/manifest.json
 ```
 
 ## Setup
@@ -26,10 +26,10 @@ https://raw.githubusercontent.com/deejayexe/silo-plugin-suricata/0.0.1/manifest.
 
 Surify supports grouped episodes, quiet hours, templates, playback failures, stream watchdogs, health and recovery alerts, and weekly digests. Posters use public image URLs exposed by Silo. Open Silo's native **Admin → Activity** page for live sessions.
 
-Gotify application tokens send notifications; use the Gotify client to choose sounds and devices. Surify does not upload binary posters or repeat alerts. Optional stream-control actions require their separate scoped key; enable them only when you intend to stop streams.
+Gotify application tokens send notifications; use the Gotify client to choose sounds and devices. Surify does not upload binary posters or repeat alerts. Optional stream-control actions require a separate **admin:sessions:control** key. Saved keys are masked; leave a secret field blank when editing to retain it.
 
 ## Compatibility
 
 The visible name is **Surify**. Its existing identifier `silo.gotify` is retained so Silo can preserve settings and update an existing installation. Access and delivery are restricted to administrators on their primary profiles.
 
-Linux amd64, Linux arm64 and macOS arm64 · Testing build · [API guide](API.md) · [MIT License](LICENSE) · [Upstream attribution](NOTICE)
+Linux amd64, Linux arm64 and macOS arm64 · [API guide](API.md) · [MIT License](LICENSE) · [Upstream attribution](NOTICE)

@@ -68,11 +68,11 @@ func TestGotifyDelivery(t *testing.T) {
 		fmt.Fprint(w, `{"id":1}`)
 	}))
 	defer srv.Close()
-	err := newGotifyClient().Send(context.Background(), gotifyMessage{User: srv.URL + "/prefix/", Token: "APP_secret", Title: "Nueva película", Message: "Hola *cine*", Priority: 2, URL: "https://silo.example/item/1"})
+	err := newGotifyClient().Send(context.Background(), gotifyMessage{User: srv.URL + "/prefix/", Token: "APP_secret", Title: "New movie 🎬", Message: "Hello *cinema*", Priority: 2, URL: "https://silo.example/item/1"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got.Title != "Nueva película" || got.Priority != 10 || !strings.Contains(got.Message, `Hola \*cine\*`) || !strings.Contains(got.Message, "[Open in Silo](https://silo.example/item/1)") {
+	if got.Title != "New movie 🎬" || got.Priority != 10 || !strings.Contains(got.Message, `Hello \*cinema\*`) || !strings.Contains(got.Message, "[Open in Silo](https://silo.example/item/1)") {
 		t.Fatalf("unexpected message: %+v", got)
 	}
 	display, ok := got.Extras["client::display"].(map[string]any)

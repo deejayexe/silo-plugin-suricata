@@ -1,6 +1,6 @@
 {
   "plugin_id": "community.duplicata-versions",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "silo_api_version": "v1",
   "supported_platforms": [
     {
@@ -219,7 +219,7 @@
     "setup_markdown": "1. Save an administrator API key.\n2. Open Duplicata Versions, check the connection and scan a library.\n3. To delete files, configure authorized real folders, enable deletion and allow write access in the Silo container. Scan again after changing settings.\n4. Review the resolved path and retained copy before confirming. Deletion is permanent. Silo updates its catalog on its next library scan.\n\nResults are held in memory. Use at your own risk; you are responsible for accidental deletion and misuse.",
     "publisher_name": "deejayexe",
     "license_spdx": "MIT",
-    "homepage_url": "https://github.com/deejayexe/silo-plugin-suricata/tree/0.0.1/plugins/duplicata",
+    "homepage_url": "https://github.com/deejayexe/silo-plugin-suricata/tree/main/plugins/duplicata",
     "source_url": "https://github.com/deejayexe/silo-plugin-suricata",
     "support_url": "https://github.com/deejayexe/silo-plugin-suricata/issues",
     "changelog_url": "https://github.com/deejayexe/silo-plugin-suricata/releases",

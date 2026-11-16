@@ -129,7 +129,7 @@ func (p *plugin) handleSiloTest(ctx context.Context, req *pb.HandleHTTPRequest) 
 				names[l.ID] = l.Name
 			}
 		}
-		text := formatBatch(&batch{Items: []item{sample}}, sample, names, notificationTitle(c))
+		text := formatBatch(&batch{Items: []item{sample}}, sample, names, notificationTitle(ctx, c))
 		return m.send(ctx, "poster-test-"+strconv.FormatInt(time.Now().UnixNano(), 10), text, data, mime)
 	})
 	if err != nil {

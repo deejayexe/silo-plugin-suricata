@@ -1,8 +1,8 @@
-name: Suricata testing
+name: Suricata CI and release
 
 on:
   push:
-    branches: ["0.0.1"]
+    branches: [main, "0.0.1"]
     paths-ignore: ["manifest.json", "repository.json", "docs/**", "**/*.md"]
   pull_request:
   workflow_dispatch:
@@ -55,8 +55,11 @@ jobs:
           export CGO_ENABLED=0
           if [ "$PLUGIN" = surimatrix ]; then flags=(-tags goolm); export CGO_ENABLED=1; fi
           base=$(python3 -c 'import json; print(json.load(open("manifest.json"))["version"])')
-          if [ "$PLUGIN" = duplicata ]; then base=0.1.1; fi
-          version="$base-dev.$BUILD_NUMBER"
+          version="$base"
+          if [ "$GITHUB_REF_NAME" != main ]; then
+            if [ "$PLUGIN" = duplicata ] && [ "$base" = 0.1.0 ]; then base=0.1.1; fi
+            version="$base-dev.$BUILD_NUMBER"
+          fi
           arch=$(go env GOARCH)
           mkdir -p ../../dist
           go build "${flags[@]}" -trimpath -ldflags="-s -w -X main.version=$version" -o "../../dist/$PLUGIN-linux-$arch" .
@@ -88,7 +91,7 @@ jobs:
 
   publish:
     needs: build
-    if: github.ref == 'refs/heads/0.0.1' && github.event_name != 'pull_request'
+    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/0.0.1') && github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -103,29 +106,46 @@ jobs:
         with:
           merge-multiple: true
           path: dist
+      - name: Select release
+        id: release
+        run: |
+          suite=$(cat VERSION)
+          [[ "$suite" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          echo "suite=$suite" >> "$GITHUB_OUTPUT"
+          if [ "$GITHUB_REF_NAME" = main ]; then
+            echo "tag=v$suite" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=testing-$suite-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
+          fi
+          git fetch origin "$GITHUB_REF_NAME"
+          test "$(git rev-parse "origin/$GITHUB_REF_NAME")" = "$GITHUB_SHA"
       - name: Generate and validate combined catalog
         env:
           BUILD_NUMBER: ${{ github.run_id }}.${{ github.run_attempt }}
-          RELEASE_TAG: testing-0.0.1-${{ github.run_id }}-${{ github.run_attempt }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           python3 -m unittest discover -s tests -v
-          python3 scripts/catalog.py --repo "$GITHUB_REPOSITORY" --tag "$RELEASE_TAG" --build-number "$BUILD_NUMBER"
+          flags=()
+          if [ "$GITHUB_REF_NAME" = main ]; then flags=(--stable); fi
+          python3 scripts/catalog.py --repo "$GITHUB_REPOSITORY" --tag "$RELEASE_TAG" --build-number "$BUILD_NUMBER" "${flags[@]}"
           cd plugins/surify
           go run ./cmd/catalogcheck -normalize ../../dist/manifest.json
-      - name: Publish testing packages
+      - name: Publish packages
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: testing-0.0.1-${{ github.run_id }}-${{ github.run_attempt }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
-          gh release create "$RELEASE_TAG" --prerelease --latest=false --target "$GITHUB_SHA" --title "Suricata 0.0.1 testing" --notes "Three-plugin testing catalog from $GITHUB_SHA. Source branch: 0.0.1. Validate in Silo before promoting to main." dist/*
-      - name: Publish catalog only on testing branch
+          flags=(--prerelease --latest=false)
+          if [ "$GITHUB_REF_NAME" = main ]; then flags=(--latest); fi
+          gh release create "$RELEASE_TAG" "${flags[@]}" --target "$GITHUB_SHA" --title "Suricata ${{ steps.release.outputs.suite }}" --notes "Surimatrix, Surify and Duplicata from $GITHUB_SHA. Source branch: $GITHUB_REF_NAME. See each plugin README for setup and credentials." dist/*
+      - name: Publish catalog on the source branch
         run: |
-          git fetch origin 0.0.1
-          test "$(git rev-parse origin/0.0.1)" = "$GITHUB_SHA"
+          git fetch origin "$GITHUB_REF_NAME"
+          test "$(git rev-parse "origin/$GITHUB_REF_NAME")" = "$GITHUB_SHA"
           cp dist/manifest.json manifest.json
           cp dist/repository.json repository.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add manifest.json repository.json
-          git commit -m "Publish validated Suricata testing catalog"
-          git push origin HEAD:refs/heads/0.0.1
+          git commit -m "Publish validated Suricata catalog"
+          git push origin "HEAD:refs/heads/$GITHUB_REF_NAME"

@@ -88,7 +88,7 @@ func TestMatrixImageWireFormatAndEncryption(t *testing.T) {
 	if bytes.Equal(ciphertext, plain) {
 		t.Fatal("attachment is plaintext")
 	}
-	content := event.MessageEventContent{MsgType: event.MsgImage, Body: "Título: Película", File: &event.EncryptedFileInfo{EncryptedFile: *file, URL: id.ContentURIString("mxc://test/image")}, Info: &event.FileInfo{MimeType: "image/jpeg", Size: len(plain)}}
+	content := event.MessageEventContent{MsgType: event.MsgImage, Body: "Title: Movie 🎬", File: &event.EncryptedFileInfo{EncryptedFile: *file, URL: id.ContentURIString("mxc://test/image")}, Info: &event.FileInfo{MimeType: "image/jpeg", Size: len(plain)}}
 	raw, e := json.Marshal(content)
 	if e != nil {
 		t.Fatal(e)
@@ -121,7 +121,7 @@ func TestArtworkDestinations(t *testing.T) {
 }
 func TestNoUnverifiedCompleteSeasonClaim(t *testing.T) {
 	b := &batch{Items: []item{{Season: 1, Episode: 1, Title: "Uno"}, {Season: 1, Episode: 2, Title: "Dos"}}}
-	s := formatBatch(b, item{Type: "episode", Title: "Serie"}, nil, "https://silo.example")
+	s := formatBatch(b, item{Type: "episode", Title: "Series"}, nil, "https://silo.example")
 	if strings.Contains(s, "Complete season") {
 		t.Fatal(s)
 	}

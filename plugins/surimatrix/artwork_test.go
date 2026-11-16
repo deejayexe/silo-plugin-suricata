@@ -36,7 +36,7 @@ func TestProfileArtworkFallback(t *testing.T) {
 	http.DefaultTransport = srv.Client().Transport
 	defer func() { http.DefaultTransport = old }()
 	c := config{SiloURL: srv.URL, SiloKey: "one-key", SiloUsername: "admin-normal"}
-	i, err := enrich(context.Background(), c, item{ID: "movie-42", Title: "Prueba", Type: "movie"})
+	i, err := enrich(context.Background(), c, item{ID: "movie-42", Title: "Example", Type: "movie"})
 	if err != nil {
 		t.Fatal(err)
 	}

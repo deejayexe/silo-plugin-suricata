@@ -74,16 +74,16 @@ func TestNotificationLayout(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	text := formatBatch(&batch{Items: []item{i}}, i, nil, notificationTitle(config{}))
-	if !strings.HasPrefix(text, "Surinas Silo 3.0🍿\n") || !strings.Contains(text, "Rating: TMDB 6.2 / 10\n--------------------\nResolution: 1080p · hevc · dts") {
+	text := formatBatch(&batch{Items: []item{i}}, i, nil, notificationTitle(context.Background(), config{}))
+	if !strings.HasPrefix(text, "Silo\n") || !strings.Contains(text, "Rating: TMDB 6.2 / 10\n--------------------\nResolution: 1080p · hevc · dts") {
 		t.Fatal(text)
 	}
-	for _, forbidden := range []string{"Abrir Silo", "Open Silo", "https://"} {
+	for _, forbidden := range []string{"Open Silo", "https://"} {
 		if strings.Contains(text, forbidden) {
 			t.Fatal(text)
 		}
 	}
-	if notificationTitle(config{MessageTitle: "My server"}) != "My server" {
+	if notificationTitle(context.Background(), config{MessageTitle: "My server"}) != "My server" {
 		t.Fatal("custom title ignored")
 	}
 }

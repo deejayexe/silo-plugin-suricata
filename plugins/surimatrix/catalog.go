@@ -103,7 +103,9 @@ func siloJSON(ctx context.Context, c config, path, key, profile string, v any) e
 	if e != nil {
 		return e
 	}
-	req.Header.Set("Authorization", "Bearer "+key)
+	if key != "" {
+		req.Header.Set("Authorization", "Bearer "+key)
+	}
 	if profile != "" {
 		req.Header.Set("X-Profile-Id", profile)
 	}
@@ -199,6 +201,7 @@ func scan(ctx context.Context, c config, m *matrixClient) error {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
+	messageTitle := ""
 	for _, k := range keys {
 		b := st.Pending[k]
 		if b.Due.After(now) {
@@ -220,7 +223,10 @@ func scan(ctx context.Context, c config, m *matrixClient) error {
 		if enrichErr != nil {
 			return enrichErr
 		}
-		text := formatBatch(b, first, names, notificationTitle(c))
+		if messageTitle == "" {
+			messageTitle = notificationTitle(ctx, c)
+		}
+		text := formatBatch(b, first, names, messageTitle)
 		var data []byte
 		mime := ""
 		if first.Poster != "" {

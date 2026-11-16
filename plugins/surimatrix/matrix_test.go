@@ -87,14 +87,14 @@ func TestEncryptedSendAndCryptoStoreReopen(t *testing.T) {
 			} else if fp != fingerprint {
 				return fmt.Errorf("identity changed after reopening SQLite")
 			}
-			if e := m.send(ctx, "stable-batch", "Título secreto", logo, "image/png"); e != nil {
+			if e := m.send(ctx, "stable-batch", "Secret title 🎬", logo, "image/png"); e != nil {
 				return e
 			}
 			mu.Lock()
 			body := append([]byte(nil), wire...)
 			ciphertext := append([]byte(nil), uploaded...)
 			mu.Unlock()
-			if bytes.Contains(body, []byte("Título")) || bytes.Equal(ciphertext, logo) {
+			if bytes.Contains(body, []byte("Secret title")) || bytes.Equal(ciphertext, logo) {
 				return fmt.Errorf("plaintext was sent")
 			}
 			var encrypted event.EncryptedEventContent
@@ -107,7 +107,7 @@ func TestEncryptedSendAndCryptoStoreReopen(t *testing.T) {
 				return fmt.Errorf("decrypt room event: %w", e)
 			}
 			msg := decrypted.Content.AsMessage()
-			if msg.MsgType != event.MsgImage || msg.Body != "Título secreto" || msg.File == nil {
+			if msg.MsgType != event.MsgImage || msg.Body != "Secret title 🎬" || msg.File == nil {
 				return fmt.Errorf("invalid decrypted image event")
 			}
 			plain, e := msg.File.Decrypt(ciphertext)

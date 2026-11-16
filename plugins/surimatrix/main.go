@@ -125,7 +125,7 @@ func (p *plugin) Handle(ctx context.Context, req *pb.HandleHTTPRequest) (*pb.Han
 		ctx, cancel := context.WithTimeout(ctx, 90*time.Second)
 		defer cancel()
 		err = withMatrix(ctx, c, func(m *matrixClient) error {
-			return m.send(ctx, "test-"+strconv.FormatInt(time.Now().UnixNano(), 10), notificationTitle(c)+"\nEncrypted image test\nElement has decrypted the message and attachment if you can see the logo.", logo, "image/png")
+			return m.send(ctx, "test-"+strconv.FormatInt(time.Now().UnixNano(), 10), notificationTitle(ctx, c)+"\nEncrypted image test\nElement has decrypted the message and attachment if you can see the logo.", logo, "image/png")
 		})
 	}
 	if err != nil {

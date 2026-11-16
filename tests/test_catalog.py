@@ -51,6 +51,23 @@ class CatalogTests(unittest.TestCase):
                 catalog.build(tmp, "example/suricata", "test-1", "123.1")
             self.assertFalse((Path(tmp) / "manifest.json").exists())
 
+    def test_stable_catalog_preserves_individual_plugin_versions(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            versions = {}
+            for name in catalog.PLUGINS:
+                source = json.loads((ROOT / "plugins" / name / "manifest.json").read_text())
+                versions[source["plugin_id"]] = source["version"]
+                for platform in source["supported_platforms"]:
+                    (directory / f"{name}-{platform['os']}-{platform['arch']}").write_bytes(name.encode())
+            catalog.build(directory, "example/suricata", "v0.0.1", "123.1", stable=True)
+            entries = json.loads((directory / "manifest.json").read_text())["plugins"]
+            for entry in entries:
+                manifest = entry["manifest"]
+                self.assertEqual(manifest["version"], versions[manifest["plugin_id"]])
+                self.assertNotIn("-dev", manifest["version"])
+                self.assertTrue(all("/v0.0.1/" in b["url"] for b in entry["binaries"].values()))
+
     def test_invalid_release_metadata_rejected(self):
         for repo, tag, number in [("bad", "test", "123.1"),
                                    ("example/repo", "bad/tag", "123.1"),
