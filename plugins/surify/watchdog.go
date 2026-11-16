@@ -1032,7 +1032,7 @@ func errorSummary(s string) string {
 // checked first.
 func (p *Plugin) handleServerEvent(ctx context.Context, eventID, eventName string, raw []byte) error {
 	cfg := p.config()
-	if cfg.MonitorAPIKey == "" {
+	if cfg.monitorKey() == "" {
 		return nil
 	}
 	alert, ok := parseServerEvent(eventID, eventName, raw, time.Now())
@@ -1063,7 +1063,7 @@ func (p *Plugin) handleServerEvent(ctx context.Context, eventID, eventName strin
 	var vars map[string]string
 	var wg sync.WaitGroup
 	wg.Go(func() { vars = p.serverAlertVars(lctx, alert) })
-	candidates, stop, retry := p.confirmAdmins(lctx, log, base, cfg.MonitorAPIKey, candidates)
+	candidates, stop, retry := p.confirmAdmins(lctx, log, base, cfg.monitorKey(), candidates)
 	wg.Wait()
 	cancel()
 	if stop {

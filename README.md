@@ -22,11 +22,11 @@ Refresh the catalog and install the plugins you want. This one URL serves all th
 
 Open each plugin's setup guide above for its credentials and scheduled tasks. Linux amd64 and arm64 are supported by all three; Surify also supports macOS arm64. Surimatrix requires Ubuntu 24.04-compatible glibc and persistent writable storage.
 
-## Release 0.0.1
+## Release 0.0.2
 
-The production catalog is published from **main** after automated checks pass. Surimatrix and Surify are version **0.0.1**; Duplicata Versions is **0.1.1** so existing installations can update from its earlier stable and testing versions. Plugin identities are retained, including Surify's `silo.gotify`.
+The production catalog is published from **main** after automated checks pass. Surify is version **0.0.2**, Surimatrix remains **0.0.1**; Duplicata Versions is **0.1.1** so existing installations can update from its earlier stable and testing versions. Plugin identities are retained, including Surify's `silo.gotify`.
 
-Surimatrix reads the notification title from your Silo server's identity settings by default. No personal server name is bundled. Surify's saved application, monitoring and stream-control keys are secret fields.
+Surimatrix reads the notification title from your Silo server's identity settings by default. No personal server name is bundled. Surify uses one hidden administrator API key for monitoring and stream control, plus its separate Gotify application token.
 
 Replace the previous testing repository URL with the production URL above. Keep only one catalog enabled for these plugin IDs. See [credentials](docs/CREDENTIALS.md) and [source revisions and releases](docs/INTEGRATION.md).
 

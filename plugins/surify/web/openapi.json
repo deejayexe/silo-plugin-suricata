@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Surify API",
-    "version": "0.0.1",
-    "description": "Administrator-only API through the Silo plugin proxy. Every page and endpoint requires an administrator on their primary profile, including state, API documentation, connection checks and tests. Only the active administrator connection can be managed. Silo strips user-supplied identity headers. Background delivery requires admin:monitor:read and a fresh check that recipients remain enabled administrators. The recently_added scheduled task offers opt-in library.added alerts with cursor-based first-seen detection; optional URL artwork uses Gotify Markdown and Android big images. Live-stream pages redirect to /admin/activity; legacy control endpoints remain for compatibility."
+    "version": "0.0.2",
+    "description": "Administrator-only API through the Silo plugin proxy. Every page and endpoint requires an administrator on their primary profile, including state, API documentation, connection checks and tests. Only the active administrator connection can be managed. Silo strips user-supplied identity headers. Background delivery uses one unrestricted administrator API key and a fresh check that recipients remain enabled administrators. The recently_added scheduled task offers opt-in library.added alerts with cursor-based first-seen detection; optional URL artwork uses Gotify Markdown and Android big images. Live-stream pages redirect to /admin/activity; legacy control endpoints remain for compatibility."
   },
   "servers": [
     {
@@ -31,7 +31,7 @@
     },
     {
       "name": "keys",
-      "description": "Setting up the plugin's scoped Silo keys (admins only)"
+      "description": "Validate and save the single Silo administrator API key (admins only)"
     },
     {
       "name": "meta",
@@ -704,7 +704,7 @@
           "keys"
         ],
         "operationId": "setUpKeys",
-        "summary": "Create the plugin's scoped Silo keys from a full-access key; can revoke that key",
+        "summary": "Validate and save one administrator API key without creating or revoking any keys",
         "requestBody": {
           "required": true,
           "content": {
@@ -719,19 +719,13 @@
                       "legacy"
                     ],
                     "default": "paste",
-                    "description": "legacy uses the key saved by 0.2.0 and always revokes it"
+                    "description": "legacy explicitly adopts a previously saved full-access key after validation"
                   },
                   "key": {
                     "type": "string",
-                    "description": "Full-access Silo API key (sa_...), for source paste"
-                  },
-                  "revoke": {
-                    "type": "boolean",
-                    "description": "Revoke the pasted key once the new key is saved"
-                  },
-                  "control": {
-                    "type": "boolean",
-                    "description": "Also create an admin:sessions:control key"
+                    "writeOnly": true,
+                    "maxLength": 300,
+                    "description": "Administrator API key (sa_...). Omit or leave blank to keep an already saved administrator key."
                   }
                 }
               }
@@ -740,7 +734,7 @@
         },
         "responses": {
           "200": {
-            "description": "What was created, saved and revoked. Never contains a key.",
+            "description": "Save result and configuration flags. Never contains a credential.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1215,6 +1209,9 @@
             "type": "boolean"
           },
           "legacy_key_stored": {
+            "type": "boolean"
+          },
+          "admin_key_set": {
             "type": "boolean"
           }
         }

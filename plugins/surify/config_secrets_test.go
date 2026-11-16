@@ -23,7 +23,7 @@ func TestSavedCredentialsAreDeclaredAsSecrets(t *testing.T) {
 	if err := json.Unmarshal([]byte(schema.JsonSchema), &document); err != nil {
 		t.Fatal(err)
 	}
-	for _, key := range []string{fieldMonitorAPIKey, fieldControlAPIKey, fieldDefaultAppToken} {
+	for _, key := range []string{fieldAdminAPIKey, fieldDefaultAppToken} {
 		found := false
 		for _, field := range schema.AdminForm.Fields {
 			if field.Key == key {
@@ -41,7 +41,7 @@ func TestSavedCredentialsAreDeclaredAsSecrets(t *testing.T) {
 
 func TestKeyStatusNeverReturnsSavedCredentials(t *testing.T) {
 	p := testPlugin(t)
-	p.setConfig(adminConfig{MonitorAPIKey: "private-monitor-key", ControlAPIKey: "private-control-key"})
+	p.setConfig(adminConfig{AdminAPIKey: "private-admin-key"})
 	raw, err := json.Marshal(p.adminKeyStatus())
 	if err != nil {
 		t.Fatal(err)

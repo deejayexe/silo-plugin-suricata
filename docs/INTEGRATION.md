@@ -1,4 +1,4 @@
-# Suricata · Release 0.0.1
+# Suricata · Release 0.0.2
 
 ## Source revisions
 
@@ -34,8 +34,14 @@ All bundled plugin text is in English, including sample data used by tests. Engl
 
 Surimatrix reads the server identity using Silo's public branding API. An explicit title remains an optional override. A fingerprint recognizes the retired bundled default on upgrade without retaining a personal name in source. Server renames are picked up on the next send. Tests cover identity lookup, renaming, custom overrides, unavailable branding and credential-free public requests.
 
-Surify's control key was present in JSON schema without secret metadata. It is now declared as a password field and a write-only secret, alongside the monitoring key and Gotify application token. This lets Silo omit saved values from the configuration response and preserve them on blank edits. Regression checks cover secret declarations and ensure the status API exposes only configuration flags.
+Release 0.0.1 corrected missing secret metadata on Surify's control key. Release 0.0.2 replaces the two exposed Silo key fields with one administrator key declared as a password and write-only secret. Silo omits saved values from configuration responses and preserves them on blank edits. Regression checks cover secret declarations and ensure the status API exposes only configuration flags.
 
 ## Local verification
 
 Use Go 1.27.4 and GCC for Surimatrix. In each plugin folder run `go test -race ./...` and `go vet ./...`, adding `-tags goolm` for Surimatrix. From the root run `python3 -m unittest discover -s tests -v`. The workflow contains the full build commands.
+
+## Surify 0.0.2
+
+Surify now accepts one unrestricted administrator API key for monitoring and stream-control actions. Its panel validates and stores that key without generating or revoking keys. The form declares only this Silo key as a password/write-only secret. The Gotify application token remains separate. Previous scoped credentials remain usable until the administrator saves the replacement; a panel save drops the obsolete stored credentials without revoking server-side keys.
+
+Regression tests verify that the same persisted key is used for an actual monitoring request and a mocked stop command, that blank edits preserve it, that rejected keys and failed saves preserve working configuration, and that an old request asking for revocation is rejected without side effects. Config formatting and status responses remain secret-free. Surimatrix and Duplicata keep their existing versions.

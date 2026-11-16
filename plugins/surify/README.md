@@ -18,7 +18,7 @@ https://raw.githubusercontent.com/deejayexe/silo-plugin-suricata/main/manifest.j
 
 1. Sign in as an administrator on the primary profile and open **Surify** from the administrator navigation.
 2. Create an application on your Gotify server. In **Connection**, save its server URL and private application token, then send a test notification. After upgrading an older connection, save it again to activate administrator delivery.
-3. Configure the scoped Silo read-only key with **admin:monitor:read**. Background delivery uses it to verify that recipients remain enabled administrators.
+3. Create one unrestricted Silo administrator API key under **Admin → API Keys**. Save it in Surify’s **Silo API key** tab or plugin settings. The same key handles monitoring, recipient checks and stream-control actions; no second Silo key is needed.
 4. Choose the playback and server alerts you want. Bind **health_check** every five minutes and **weekly_digest** every hour.
 5. For additions, enable **New library content** and bind **recently_added** every two minutes. Restart Silo after changing task bindings. Existing library items are not announced.
 
@@ -26,7 +26,7 @@ https://raw.githubusercontent.com/deejayexe/silo-plugin-suricata/main/manifest.j
 
 Surify supports grouped episodes, quiet hours, templates, playback failures, stream watchdogs, health and recovery alerts, and weekly digests. Posters use public image URLs exposed by Silo. Open Silo's native **Admin → Activity** page for live sessions.
 
-Gotify application tokens send notifications; use the Gotify client to choose sounds and devices. Surify does not upload binary posters or repeat alerts. Optional stream-control actions require a separate **admin:sessions:control** key. Saved keys are masked; leave a secret field blank when editing to retain it.
+Gotify application tokens send notifications; use the Gotify client to choose sounds and devices. Surify does not upload binary posters or repeat alerts. The single Silo key remains hidden; leave its field blank when editing to retain it. Surify never creates or revokes API keys automatically. Existing scoped settings keep working until you save the replacement administrator key.
 
 ## Compatibility
 

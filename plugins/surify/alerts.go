@@ -74,7 +74,7 @@ func (p *Plugin) handlePlaybackEvent(ctx context.Context, eventID, eventName str
 		return nil
 	}
 	cfg := p.config()
-	if cfg.MonitorAPIKey == "" {
+	if cfg.monitorKey() == "" {
 		return nil
 	}
 	key := playbackDedupeKey(eventID, pb)
@@ -105,7 +105,7 @@ func (p *Plugin) handlePlaybackEvent(ctx context.Context, eventID, eventName str
 	retry := false
 	if len(candidates) > 0 || pb.Event == eventSessionStarted {
 		var stop bool
-		candidates, stop, retry = p.lookUp(ctx, log, cfg.MonitorAPIKey, key, ev, candidates)
+		candidates, stop, retry = p.lookUp(ctx, log, cfg.monitorKey(), key, ev, candidates)
 		if stop {
 			return nil
 		}
@@ -219,7 +219,7 @@ func (p *Plugin) lookUp(ctx context.Context, log *slog.Logger, apiKey, eventKey 
 		if !logged[what] {
 			logged[what] = true
 			if keyErr {
-				log.Warn("the read-only Silo key can't "+what+"; skipping the alerts that need it", "error", err)
+				log.Warn("the Silo administrator API key can't "+what+"; skipping the alerts that need it", "error", err)
 			} else {
 				log.Warn("could not "+what+"; will retry the alerts that need it", "error", err)
 			}
@@ -376,7 +376,7 @@ func (p *Plugin) confirmAdmins(ctx context.Context, log *slog.Logger, base, apiK
 		switch {
 		case errors.Is(res.err, errSiloKeyRejected), errors.Is(res.err, errSiloKeyScope):
 			if !p.adminKeyWarned.Swap(true) {
-				log.Warn("Silo refused the read-only key, so admin alerts are paused until it's fixed. Set up the key again from the admin section of the Gotify page.", "error", res.err)
+				log.Warn("Silo refused the administrator API key, so admin alerts are paused until it's fixed. Set up the key again from the admin section of the Gotify page.", "error", res.err)
 			}
 			return nil, true, false
 		case errors.Is(res.err, errSiloUserNotFound):

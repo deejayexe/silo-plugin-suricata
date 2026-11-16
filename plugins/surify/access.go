@@ -29,7 +29,7 @@ func (p *Plugin) adminDestinationAllowed(ctx context.Context, s *ProfileSettings
 	if s == nil || !s.AdminManaged || s.UserID <= 0 {
 		return false, nil
 	}
-	key := p.config().MonitorAPIKey
+	key := p.config().monitorKey()
 	if key == "" {
 		return false, nil
 	}

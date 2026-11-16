@@ -91,8 +91,8 @@ func (p *Plugin) runRecentlyAdded(ctx context.Context, now time.Time) (map[strin
 	}
 	defer p.recentMu.Unlock()
 	cfg := p.config()
-	if cfg.MonitorAPIKey == "" {
-		out["status"] = "read-only Silo key required"
+	if cfg.monitorKey() == "" {
+		out["status"] = "Silo administrator API key required"
 		return out, nil
 	}
 	admins, err := p.admins.List(ctx)
@@ -183,7 +183,7 @@ func (p *Plugin) runRecentlyAdded(ctx context.Context, now time.Time) (map[strin
 			Items []catalogAddition `json:"items"`
 			Page  *pageInfo         `json:"page"`
 		}
-		if e = p.silo.get(ctx, base, cfg.MonitorAPIKey, "/api/v2/admin/catalog/items?"+q.Encode(), &page); e != nil {
+		if e = p.silo.get(ctx, base, cfg.monitorKey(), "/api/v2/admin/catalog/items?"+q.Encode(), &page); e != nil {
 			return nil, e
 		}
 		if page.Page != nil && page.Page.HasMore && (page.Page.NextCursor == "" || page.Page.NextCursor == progress.Cursor) {

@@ -124,7 +124,7 @@
   }
 
   function controlKeyMissing() {
-    return `<div class="notice warn"><strong>Stopping streams isn't set up.</strong>It needs the plugin's stream-control key (scope admin:sessions:control). Open <a href="${esc(base)}">Surify</a> and, in the Silo keys section, set up the key with “Also allow stopping streams” ticked.</div>`;
+    return `<div class="notice warn"><strong>Stopping streams isn't set up.</strong>It uses the same administrator API key as monitoring. Open <a href="${esc(base)}">Surify</a> and, save the administrator API key in the Silo API key tab.</div>`;
   }
 
   function facts(s) {
@@ -222,7 +222,7 @@
 
   function showError(e) {
     const keyFix = e.code && e.code.startsWith("monitor_key_");
-    $("#app").innerHTML = `<div class="notice error"><strong>${keyFix ? "The read-only Silo key needs attention." : "Couldn't load the stream."}</strong>${esc(e.message)}
+    $("#app").innerHTML = `<div class="notice error"><strong>${keyFix ? "The Silo administrator API key needs attention." : "Couldn't load the stream."}</strong>${esc(e.message)}
       <div class="actions"><button class="btn" type="button" id="retry">Try again</button></div></div>`;
     $("#retry").addEventListener("click", () => { $("#app").innerHTML = '<div class="skeleton"></div>'; sessionId ? loadOne() : loadList(); });
   }

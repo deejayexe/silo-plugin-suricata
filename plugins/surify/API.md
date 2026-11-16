@@ -1,4 +1,4 @@
-# Surify API — 0.0.1
+# Surify API — 0.0.2
 
 Every route, including the settings page, state, documentation and logo, requires
 an administrator on their primary Silo profile. The manifest uses admin access and
@@ -11,13 +11,13 @@ Pre-upgrade connections remain inactive until saved once by their administrator.
 No saved token is deleted during this migration. Inbox notifications, pending episode
 groups and server/scheduled alerts cannot use legacy unapproved connections.
 
-Automatic delivery requires `admin:monitor:read` and verifies the recipient's current
+Automatic delivery uses one unrestricted Silo administrator API key and verifies the recipient's current
 role and enabled status with Silo without trusting the cached role. Missing/revoked
 keys pause delivery; temporary role lookup failures keep notifications retryable.
 Normal users, deleted/disabled accounts and demoted administrators receive no alerts.
 Monitoring still covers server-wide playback by all users; recipients are admins.
 
-The plugin retains the upstream alert events, key setup, session controls and tasks. All calls use the Silo SDK v0.32.1.
+The plugin retains the upstream alert events, session controls and tasks. All calls use the Silo SDK v0.32.1.
 
 Each administrator connection uses `server_url` and a secret `app_token`. An empty token can use the
 admin default only when `server_url` equals `default_server_url`. Secrets are
@@ -48,8 +48,7 @@ A lost delivery acknowledgement can cause a duplicate when Silo retries.
 Subscribed events: `notification.created`, `session.started`, `session.paused`,
 `session.resumed`, `session.stopped`, `scan.failed`, `job.failed`.
 Tasks: `health_check` every 5 minutes, `weekly_digest` hourly. Restart Silo after
-changing task bindings. Admin monitoring uses `admin:monitor:read`; session control
-uses `admin:sessions:control`. Administrators can use separate Gotify applications for
+changing task bindings. The same administrator API key handles monitoring and session control. Administrators can use separate Gotify applications for
 private delivery.
 
 ## Library additions
@@ -70,9 +69,7 @@ episode rows are announced; a series container does not produce a duplicate
 alert alongside its episodes. The title, year, episode numbers, resolution and
 codecs, genres and available TMDB/IMDb ratings come from Silo. The optional host ListLibraryMedia/ResolveCatalogImageURLs
 methods enrich exact content-ID matches with synopsis and artwork. Hosts that do
-not implement them still receive text notifications. The current scoped admin
-listing omits synopsis and artwork, so images cannot be guaranteed on every Silo
-version. Public/resolved artwork URLs use Gotify Markdown and
+not implement them still receive text notifications. Availability of synopsis and artwork varies by Silo version, so images cannot be guaranteed. Public/resolved artwork URLs use Gotify Markdown and
 `client::notification.bigImageUrl`; rendering depends on the receiving client.
 No Silo API credential is placed in an image URL.
 
@@ -84,3 +81,11 @@ Navigation now uses `/admin` and `/admin/activity`. Legacy Surify live-stream
 page URLs redirect to native Silo activity. The old session-control JSON API is
 retained for compatibility but is no longer advertised or configured by the UI.
 The original transparent logo is distributed as a 360-pixel WebP (~28 KB).
+
+## Single administrator key
+
+`POST /api/admin/key-setup` now validates and saves the supplied administrator key itself. Request: `{"key":"sa_…"}`. An omitted or blank key preserves an already saved administrator key. `source: "legacy"` explicitly adopts a previously saved full-access credential after validation. The endpoint makes read-only checks against Silo; it never creates or revokes keys. Old requests asking to create scoped keys or revoke the pasted key receive HTTP 409 and must reload the UI.
+
+`admin_keys.admin_key_set` indicates the new configuration. Compatibility flags `monitor_key_set` and `control_key_set` indicate effective availability without returning values. Existing scoped installations continue using their previous keys until the administrator supplies a single replacement key. Saving that replacement through the panel removes old credentials from the plugin configuration without revoking them on Silo. Gotify destinations and tokens are preserved.
+
+Only `admin_api_key` is exposed as the Silo credential in the settings form. It is a password control and write-only secret. The old `monitor_api_key`, `control_api_key` and `silo_api_key` settings remain undeclared protected compatibility values, never public settings fields.

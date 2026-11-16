@@ -226,7 +226,7 @@
     { id: "account", label: "Connection", sub: "Your administrator notification destination in Gotify." },
     { id: "mine", label: "Inbox alerts", sub: "Notifications from your administrator account's Silo inbox." },
     { id: "admin", label: "Server alerts", sub: "Playback, watchdog and server alerts delivered only to administrators.", admin: true },
-    { id: "keys", label: "Silo API keys", sub: "Scoped keys the plugin uses to read from Silo.", admin: true },
+    { id: "keys", label: "Silo API key", sub: "One administrator key for monitoring and control.", admin: true },
   ];
   const ALERT_GROUPS = [
     { key: "playback", title: "Playback" },
@@ -240,9 +240,9 @@
     binge: { title: "Collapse binges", text: "One start per show, then quiet until they're idle for the window.", window: "Idle time" },
   };
   const KEY_PROBLEMS = {
-    monitor_key_missing: "Admin alerts need the read-only Silo key.",
-    monitor_key_rejected: "Silo rejected the saved read-only key (it may have been revoked), so admin alerts are paused.",
-    monitor_key_scope: "The saved read-only key can't look up accounts, so admin alerts are paused.",
+    monitor_key_missing: "Admin alerts need the Silo administrator API key.",
+    monitor_key_rejected: "Silo rejected the saved administrator API key (it may have been revoked), so admin alerts are paused.",
+    monitor_key_scope: "The saved administrator API key can't look up accounts, so admin alerts are paused.",
   };
 
   const $ = (s, r = document) => r.querySelector(s);
@@ -464,7 +464,7 @@
     $("#panel-account").innerHTML = `
       <div style="display:flex;flex-direction:column;gap:16px">
       ${view.configured && !view.admin_managed ? `<div class="notice warn"><strong>Activate your administrator connection.</strong>Save this connection once after upgrading to Surify. Earlier connections stay inactive until saved by their administrator.</div>` : ""}
-      ${state.admin_keys && !state.admin_keys.monitor_key_set ? `<div class="notice warn"><strong>Automatic delivery is paused.</strong>Set up the read-only Silo key on the Silo API keys tab so Surify can verify that recipients are still administrators. You can save and test your connection first.</div>` : ""}
+      ${state.admin_keys && !state.admin_keys.monitor_key_set ? `<div class="notice warn"><strong>Automatic delivery is paused.</strong>Set up the Silo administrator API key on the Silo API key tab so Surify can verify that recipients are still administrators. You can save and test your connection first.</div>` : ""}
       <section class="card">
         <div class="cardHead">
           <h2>Administrator connection${view.profile_name ? ` <span class="muted" style="font-weight:400">· ${esc(view.profile_name)}</span>` : ""}</h2>
@@ -1282,45 +1282,23 @@ PUT /api/v2/admin/plugins/installations/ID/task-bindings/recently_added
     const box = $("#panel-keys");
     const k = state && state.admin_keys;
     if (!box || !k) return;
-    // Re-rendering mustn't lose the last result or the form's state.
     const keepResult = $("#setupResult") ? $("#setupResult").innerHTML : "";
-    const keepControl = $("#setupControl") ? $("#setupControl").checked : false;
-    const keepRevoke = $("#setupRevoke") ? $("#setupRevoke").checked : true;
-    const needsKey = adminState === "key";
-    const bad = needsKey && adminProblem === "monitor_key_rejected" ? "Rejected"
-      : needsKey && adminProblem === "monitor_key_scope" ? "Wrong scope" : "";
-    const row = (set, label, scope, use, badText) => `<div class="keyrow">
-      <span class="dot${!set ? " off" : badText ? " warn" : ""}"></span>
-      <span class="grow"><b>${esc(label)}</b><small>${esc(scope)} · ${esc(use)}</small></span>
-      <span class="help ${set && !badText ? "status-ok" : badText ? "status-err" : ""}">${set ? (badText || (label === "Read-only" && adminState === "ready" ? "Working" : "Saved")) : "Not set"}</span></div>`;
-    const action = k.monitor_key_set ? "Replace keys" : "Create keys";
+    const legacy = !k.admin_key_set && k.monitor_key_set;
     box.innerHTML = `
-      <div style="display:flex;flex-direction:column;gap:16px">
       <section class="card">
-        <h2>Keys the plugin uses</h2>
-        <div class="cols" style="gap:10px">
-          ${row(k.monitor_key_set, "Read-only", "admin:monitor:read", "recipient checks, monitoring and server alerts", bad)}
-
+        <h2>Silo administrator API key</h2>
+        <p>Use one unrestricted administrator key for recipient checks, monitoring, server alerts and stream-control actions. The saved value stays hidden.</p>
+        <span class="help">${k.admin_key_set ? "Administrator key saved." : legacy ? "Your previous scoped configuration remains active. Save one administrator key to replace it." : "No administrator key is configured."}</span>
+        <div class="field"><label class="lbl" for="setupKey">Administrator API key</label><input type="password" id="setupKey" autocomplete="new-password" spellcheck="false" placeholder="${k.admin_key_set ? "Saved secret — leave blank to keep" : "sa_…"}"></div>
+        <span class="help">Create the key under Admin &gt; API Keys. Surify saves it privately and never creates or revokes API keys automatically.</span>
+        <div class="actions"><button class="btn primary" type="button" id="setupBtn">Save key</button>
+          ${k.legacy_key_stored ? `<button class="btn" type="button" id="legacyBtn">Use previously saved administrator key</button>` : ""}
         </div>
-        ${needsKey ? `<span class="help status-err">${esc(KEY_PROBLEMS[adminProblem] || KEY_PROBLEMS.monitor_key_missing)}</span>` : ""}
-      </section>
-      ${k.legacy_key_stored ? `<div class="notice warn"><strong>The full-access key from version 0.2.0 is still stored.</strong>The plugin can use it once to create the read-only key, then revokes it.
-        <div class="actions"><button class="btn primary" type="button" id="legacyBtn">Replace the old full-access key</button></div></div>` : ""}
-      <section class="card">
-        <h2>${action}</h2>
-        <span class="help">Paste a full-access key from Admin &gt; API Keys. The plugin makes scoped keys from it and never stores it.</span>
-        <div class="field"><label class="lbl" for="setupKey">Full-access key</label><input type="password" id="setupKey" autocomplete="off" spellcheck="false" placeholder="sa_…"></div>
-        <div class="flexrow">
-          <label class="sw"><input type="checkbox" id="setupRevoke"${keepRevoke ? " checked" : ""}>Delete this key from Silo afterwards</label>
-
-        </div>
-        <div class="actions"><button class="btn primary" type="button" id="setupBtn">${action}</button></div>
         <div id="setupResult" role="status" aria-live="polite">${keepResult}</div>
-      </section>
-      </div>`;
+      </section>`;
     $("#setupBtn").addEventListener("click", () => runSetup("paste"));
-    const legacy = $("#legacyBtn");
-    if (legacy) legacy.addEventListener("click", () => runSetup("legacy"));
+    const legacyBtn = $("#legacyBtn");
+    if (legacyBtn) legacyBtn.addEventListener("click", () => runSetup("legacy"));
   }
 
   function showSetupResult(kind, title, details) {
@@ -1328,39 +1306,26 @@ PUT /api/v2/admin/plugins/installations/ID/task-bindings/recently_added
   }
 
   async function runSetup(source) {
-    const body = { source, control: false };
-    const pasted = $("#setupKey").value.trim();
+    const body = { source };
     if (source === "paste") {
-      if (!pasted) { showSetupResult("error", "Paste a full-access Silo API key first.", []); $("#setupKey").focus(); return; }
-      body.key = pasted;
-      body.revoke = $("#setupRevoke").checked;
-    } else if (!confirm("Use the old full-access key to create the read-only key, then revoke the old key in Silo?")) {
-      return;
+      body.key = $("#setupKey").value.trim();
+      $("#setupKey").value = "";
+      if (!body.key && !state.admin_keys.admin_key_set) {
+        showSetupResult("error", "Enter a Silo administrator API key.", []);
+        return;
+      }
     }
     $$("#panel-keys input, #panel-keys button").forEach((e) => (e.disabled = true));
-    $("#setupResult").innerHTML = `<p class="help">Setting up the key. This takes a few seconds…</p>`;
+    $("#setupResult").innerHTML = `<p class="help">Checking and saving the key…</p>`;
     let res = null, error = null;
     try { res = await api("api/admin/key-setup", "POST", body); } catch (e) { error = e; }
     if (expired) return;
-    if (res) {
-      state.admin_keys = res.keys;
-    } else {
-      // A request that timed out may still have finished on the server.
-      try { const fresh = await api("api/state"); if (fresh.admin_keys) state.admin_keys = fresh.admin_keys; } catch { /* keep the old status */ }
-      if (expired) return;
-    }
+    if (res) state.admin_keys = res.keys;
     renderKeys();
-    if (res) {
-      const details = [...(res.details || [])];
-      if (res.saved) details.push("Reload this page to activate administrator notifications and server monitoring.");
-      showSetupResult(res.level === "warn" ? "warn" : "ok", res.title, details);
-    } else {
-      if (source === "paste") $("#setupKey").value = pasted;
-      showSetupResult("error", "The key setup didn't finish.", [error.message]);
-    }
+    if (res) showSetupResult("ok", res.title, res.details || []);
+    else showSetupResult("error", "The administrator key wasn't saved.", [error.message]);
     renderRailFoot();
-    // A new key may make the alert settings available (or fix a broken key).
-    if (state.admin_keys.monitor_key_set && (res ? res.saved : true) && adminState !== "ready") loadAdmin();
+    if (res && res.saved) loadAdmin();
   }
 
   window.addEventListener("hashchange", () => { if (state) showTab(location.hash.slice(1)); });

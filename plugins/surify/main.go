@@ -64,7 +64,7 @@ type Plugin struct {
 	// configured is set once Silo has called Configure, so the plugin knows
 	// the stored config before it writes it back.
 	configured atomic.Bool
-	// adminKeyWarned is set once a refused read-only key has been logged, so
+	// adminKeyWarned is set once a refused administrator API key has been logged, so
 	// admin alerts log it once rather than on every event.
 	adminKeyWarned atomic.Bool
 
@@ -230,7 +230,7 @@ func (p *Plugin) configure(_ context.Context, entries []*pluginv1.ConfigEntry) e
 	p.configured.Store(true)
 	if cfg.LegacyKeyStored {
 		// Only the fact, never the value.
-		p.logger.Info("the unscoped Silo API key saved by version 0.2.0 is still stored with this plugin's settings; it is ignored. Replace it from the admin section of the Gotify page, or revoke it under Admin > API Keys.")
+		p.logger.Info("a previous Silo administrator key is available for explicit adoption from the Surify API key panel; it has not been activated or revoked.")
 	}
 	return nil
 }

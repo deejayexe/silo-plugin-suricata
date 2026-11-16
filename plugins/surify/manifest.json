@@ -1,6 +1,6 @@
 {
   "plugin_id": "silo.gotify",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "silo_api_version": "v1",
   "category": "Notifications",
   "metadata": {
@@ -46,19 +46,19 @@
       "type": "scheduled_task.v1",
       "id": "health_check",
       "display_name": "Surify server health check",
-      "description": "Checks Silo's stream nodes, restart state, database and Redis, and the server's disk and memory, and sends a Gotify alert (and a recovery alert) to admins who turned it on. Needs the read-only Silo key. Suggested schedule: every 5 minutes."
+      "description": "Checks Silo's stream nodes, restart state, database and Redis, and the server's disk and memory, and sends a Gotify alert (and a recovery alert) to admins who turned it on. Needs the Silo administrator API key. Suggested schedule: every 5 minutes."
     },
     {
       "type": "scheduled_task.v1",
       "id": "weekly_digest",
       "display_name": "Surify weekly digest",
-      "description": "Sends admins who turned it on a Gotify summary of the last 7 days: plays, time watched, top viewers and top titles. Each admin picks their own day and hour (default Sunday 18:00, in their time zone) and a run sends it in that hour or in any later run within 6 hours after (so a week isn't lost if Silo was down), at most once a week, so schedule it to run every hour. Needs the read-only Silo key. Suggested schedule: every 1 hour."
+      "description": "Sends admins who turned it on a Gotify summary of the last 7 days: plays, time watched, top viewers and top titles. Each admin picks their own day and hour (default Sunday 18:00, in their time zone) and a run sends it in that hour or in any later run within 6 hours after (so a week isn't lost if Silo was down), at most once a week, so schedule it to run every hour. Needs the Silo administrator API key. Suggested schedule: every 1 hour."
     },
     {
       "type": "scheduled_task.v1",
       "id": "recently_added",
       "display_name": "Surify new library content",
-      "description": "Checks newly added movies and episodes with a resumable catalog cursor. Suggested schedule: every 2 minutes. No initial library flood. Requires admin:monitor:read. Posters/overview depend on host availability."
+      "description": "Checks newly added movies and episodes with a resumable catalog cursor. Suggested schedule: every 2 minutes. No initial library flood. Requires the Silo administrator API key. Posters/overview depend on host availability."
     }
   ],
   "global_config_schema": [
@@ -66,7 +66,7 @@
       "key": "gotify",
       "title": "Surify",
       "description": "Administrator-only Gotify delivery. Shared defaults are optional; each administrator can use a separate destination.",
-      "json_schema": "{\"type\": \"object\", \"properties\": {\"default_app_token\": {\"type\": \"string\", \"writeOnly\": true}, \"public_url\": {\"type\": \"string\"}, \"monitor_api_key\": {\"type\": \"string\", \"writeOnly\": true}, \"control_api_key\": {\"type\": \"string\", \"writeOnly\": true}, \"default_server_url\": {\"type\": \"string\"}}, \"additionalProperties\": false}",
+      "json_schema": "{\"type\": \"object\", \"properties\": {\"default_app_token\": {\"type\": \"string\", \"writeOnly\": true}, \"public_url\": {\"type\": \"string\"}, \"default_server_url\": {\"type\": \"string\"}, \"admin_api_key\": {\"type\": \"string\", \"writeOnly\": true, \"maxLength\": 300}}, \"additionalProperties\": false}",
       "admin_form": {
         "fields": [
           {
@@ -91,18 +91,12 @@
             "placeholder": "https://silo.example.com"
           },
           {
-            "key": "monitor_api_key",
-            "label": "Read-only Silo key (admin:monitor:read)",
-            "description": "Required for automatic delivery. The plugin verifies that recipients are still enabled administrators. Use only the admin:monitor:read scope; configure it from the Surify panel.",
+            "key": "admin_api_key",
+            "label": "Silo administrator API key",
+            "description": "One unrestricted key for monitoring, recipient checks and stream control. Leave blank when editing to keep the saved secret.",
             "control": "ADMIN_FORM_CONTROL_PASSWORD",
-            "secret": true
-          },
-          {
-            "key": "control_api_key",
-            "label": "Stream-control Silo key (optional)",
-            "description": "Only needed to stop streams. Leave blank when editing to keep the saved secret.",
-            "control": "ADMIN_FORM_CONTROL_PASSWORD",
-            "secret": true
+            "secret": true,
+            "placeholder": "sa_…"
           }
         ],
         "sections": [
@@ -118,11 +112,10 @@
           },
           {
             "key": "silo_keys",
-            "title": "Silo API keys (optional)",
-            "description": "Scoped keys let the plugin read from Silo without full admin access. Silo's API Keys page creates only full-access keys, so the easiest way to get these is to open Admin > Surify as an admin and use \"Set up the read-only key\": paste a full-access key once and the plugin creates the scoped keys, saves them here and can revoke the full-access key.",
+            "title": "Silo administrator API key",
+            "description": "Create one unrestricted key under Admin > API Keys and save it here or in the Surify panel. The key remains hidden; no extra keys are generated or revoked.",
             "field_keys": [
-              "monitor_api_key",
-              "control_api_key"
+              "admin_api_key"
             ]
           }
         ],
@@ -174,8 +167,8 @@
   "presentation": {
     "display_name": "Surify",
     "summary": "Administrator-only Silo notifications through Gotify: playback, watchdogs, failures and server health.",
-    "description_markdown": "![Surify](https://raw.githubusercontent.com/deejayexe/silo-plugin-suricata/main/plugins/surify/web/surify-logo.webp)\n\nSend Silo notifications to a self-hosted Gotify server. Administrator notifications, episode grouping, quiet hours, custom templates, playback and failure alerts, stream watchdogs, server health and recovery checks, weekly digests and links to Silo’s native activity page. Uses the same Silo events and scoped Silo API calls as the MIT-licensed plugin by Josh Black. Gotify uses application tokens, Markdown links and priorities 0, 2, 5, 8 and 10. Sounds and device selection are managed in the Gotify client. New library content can include a Markdown poster and Android big image when Silo exposes a usable image URL. Repeating alerts and binary poster uploads are not supported. Access is restricted to administrators on their primary profile. Other users cannot see the navigation entry or access the pages/API. Before background delivery, Silo must confirm the recipient is still an enabled administrator. Connections from older builds remain inactive until saved by the administrator after upgrading.",
-    "setup_markdown": "1. Sign in to Silo as an administrator on your primary profile. Open Surify from the administrator navigation.\n2. Create a Gotify application and copy its private application token (legacy or gtfya.…). Save the server URL and token on the Connection tab. After upgrading from an earlier build, save the existing connection once to activate administrator-only delivery.\n3. Check the server and send a test notification.\n4. Set up the scoped Silo read-only key (admin:monitor:read). Automatic delivery requires this key to verify recipient roles. Live sessions are available in Silo’s native Admin > Activity page.\n5. Configure server alerts. Bind health_check to every 5 minutes and weekly_digest to every hour, then restart Silo after changing task bindings. Ordinary users and secondary profiles cannot access this plugin. \n6. For the new library content alert, enable New library content in Server alerts, bind recently_added to an interval of 2 minutes, and restart Silo after changing the binding. Existing library items are not announced. Artwork uses public/resolved Silo URLs when available.",
+    "description_markdown": "![Surify](https://raw.githubusercontent.com/deejayexe/silo-plugin-suricata/main/plugins/surify/web/surify-logo.webp)\n\nSend Silo notifications to a self-hosted Gotify server. Administrator notifications, episode grouping, quiet hours, custom templates, playback and failure alerts, stream watchdogs, server health and recovery checks, weekly digests and links to Silo’s native activity page. Uses Silo events and one administrator API key for Silo queries and stream-control actions. Adapted from the MIT-licensed plugin by Josh Black. Gotify uses application tokens, Markdown links and priorities 0, 2, 5, 8 and 10. Sounds and device selection are managed in the Gotify client. New library content can include a Markdown poster and Android big image when Silo exposes a usable image URL. Repeating alerts and binary poster uploads are not supported. Access is restricted to administrators on their primary profile. Other users cannot see the navigation entry or access the pages/API. Before background delivery, Silo must confirm the recipient is still an enabled administrator. Connections from older builds remain inactive until saved by the administrator after upgrading.",
+    "setup_markdown": "1. Sign in to Silo as an administrator on your primary profile. Open Surify from the administrator navigation.\n2. Create a Gotify application and copy its private application token (legacy or gtfya.…). Save the server URL and token on the Connection tab. After upgrading from an earlier build, save the existing connection once to activate administrator-only delivery.\n3. Check the server and send a test notification.\n4. Save one unrestricted Silo administrator API key. The same key handles monitoring, recipient checks and stream-control actions. It stays hidden, and Surify does not create or revoke keys. Live sessions are available in Silo’s native Admin > Activity page.\n5. Configure server alerts. Bind health_check to every 5 minutes and weekly_digest to every hour, then restart Silo after changing task bindings. Ordinary users and secondary profiles cannot access this plugin.\n6. For the new library content alert, enable New library content in Server alerts, bind recently_added to an interval of 2 minutes, and restart Silo after changing the binding. Existing library items are not announced. Artwork uses public/resolved Silo URLs when available.",
     "homepage_url": "https://github.com/deejayexe/silo-plugin-suricata/tree/main/plugins/surify",
     "source_url": "https://github.com/deejayexe/silo-plugin-suricata",
     "support_url": "https://github.com/deejayexe/silo-plugin-suricata/issues",

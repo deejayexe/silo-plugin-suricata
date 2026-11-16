@@ -610,13 +610,13 @@ func (p *Plugin) handleValidate(ctx context.Context, prof siloProfile, body []by
 	return jsonResponse(http.StatusOK, map[string]any{"devices": devices, "sounds": sounds})
 }
 
-// adminViewer is an acting admin whose read-only key check passed.
+// adminViewer is an acting admin whose administrator API key check passed.
 type adminViewer struct {
 	userID    int
 	profileID string
 	username  string
 	base      string // Silo's internal URL
-	key       string // the read-only key
+	key       string // the administrator API key
 }
 
 // adminRoutes lists the admin alert routes under /api/admin/ and their
@@ -628,7 +628,7 @@ var adminRoutes = map[string][]string{
 }
 
 // serveAdminAPI answers the admin alert routes. Each needs an acting admin
-// and a working read-only Silo key; without the key it says so.
+// and a working Silo administrator API key; without the key it says so.
 func (p *Plugin) serveAdminAPI(ctx context.Context, req *pluginv1.HandleHTTPRequest, route string) *pluginv1.HandleHTTPResponse {
 	methods, ok := adminRoutes[route]
 	if !ok {
@@ -660,7 +660,7 @@ func (p *Plugin) serveAdminAPI(ctx context.Context, req *pluginv1.HandleHTTPRequ
 }
 
 // resolveAdmin checks that the viewer is an acting admin and that the
-// read-only key works, by looking up the viewer's own account with it.
+// administrator API key works, by looking up the viewer's own account with it.
 func (p *Plugin) resolveAdmin(ctx context.Context, req *pluginv1.HandleHTTPRequest) (*adminViewer, *apiError) {
 	userID, _ := strconv.Atoi(header(req, "X-Silo-User-Id"))
 	if userID <= 0 {
@@ -673,7 +673,7 @@ func (p *Plugin) resolveAdmin(ctx context.Context, req *pluginv1.HandleHTTPReque
 	if a.profileID == "" {
 		return nil, apiErr(http.StatusConflict, "no_profile", "Choose a profile in Silo, then open Gotify from the sidebar again.")
 	}
-	a.key = p.config().MonitorAPIKey
+	a.key = p.config().monitorKey()
 	if a.key == "" {
 		return nil, monitorKeyProblem(errSiloKeyMissing)
 	}
@@ -689,8 +689,8 @@ func (p *Plugin) resolveAdmin(ctx context.Context, req *pluginv1.HandleHTTPReque
 	case errors.Is(err, errSiloUserNotFound), err == nil && !user.isAdmin():
 		return nil, apiErr(http.StatusForbidden, "forbidden", "Silo doesn't list your account as an enabled admin, so you can't set up admin alerts.")
 	case err != nil:
-		p.logger.Warn("could not check the admin's account with the read-only Silo key", "user_id", userID, "error", err)
-		return nil, apiErr(http.StatusBadGateway, "silo_unavailable", "Couldn't reach Silo to check the read-only key. Reload the page to try again.")
+		p.logger.Warn("could not check the admin's account with the Silo administrator API key", "user_id", userID, "error", err)
+		return nil, apiErr(http.StatusBadGateway, "silo_unavailable", "Couldn't reach Silo to check the administrator API key. Reload the page to try again.")
 	}
 	if a.username == "" {
 		a.username = user.Username
@@ -699,16 +699,16 @@ func (p *Plugin) resolveAdmin(ctx context.Context, req *pluginv1.HandleHTTPReque
 }
 
 // monitorKeyProblem explains why admin alerts can't run without a working
-// read-only key. The page shows the key setup box for these codes.
+// administrator API key. The page shows the key setup box for these codes.
 func monitorKeyProblem(err error) *apiError {
-	const fix = " Use “Set up the read-only key” in the admin section of this page, or add a key under " + adminFormPath + "."
+	const fix = " Save the administrator API key in the Silo API key tab, or add a key under " + adminFormPath + "."
 	switch {
 	case errors.Is(err, errSiloKeyRejected):
-		return apiErr(http.StatusConflict, "monitor_key_rejected", "Silo rejected the plugin's read-only Silo key, so no admin alerts are sent. The key may have been revoked."+fix)
+		return apiErr(http.StatusConflict, "monitor_key_rejected", "Silo rejected the plugin's Silo administrator API key, so no admin alerts are sent. The key may have been revoked."+fix)
 	case errors.Is(err, errSiloKeyScope):
-		return apiErr(http.StatusConflict, "monitor_key_scope", "The plugin's read-only Silo key isn't allowed to look up accounts, so no admin alerts are sent. It needs the admin:monitor:read scope."+fix)
+		return apiErr(http.StatusConflict, "monitor_key_scope", "The plugin's Silo administrator API key isn't allowed to look up accounts, so no admin alerts are sent. Use an unrestricted administrator API key."+fix)
 	}
-	return apiErr(http.StatusConflict, "monitor_key_missing", "Admin alerts need a read-only Silo key (scope admin:monitor:read), which isn't set up yet. The plugin uses it to check that each recipient is still an admin."+fix)
+	return apiErr(http.StatusConflict, "monitor_key_missing", "Admin alerts need a Silo administrator API key, which isn't set up yet. The plugin uses it to check that each recipient is still an admin."+fix)
 }
 
 // adminSettingsView fills in every alert type and empty lists, for the page.
@@ -880,7 +880,7 @@ func (p *Plugin) handleListUsers(ctx context.Context, a *adminViewer) *pluginv1.
 	case errors.Is(err, errSiloKeyRejected), errors.Is(err, errSiloKeyScope):
 		return errorResponse(monitorKeyProblem(err))
 	case err != nil:
-		p.logger.Warn("could not list Silo accounts with the read-only key", "error", err)
+		p.logger.Warn("could not list Silo accounts with the administrator API key", "error", err)
 		return errorResponse(apiErr(http.StatusBadGateway, "silo_unavailable", "Couldn't reach Silo to list accounts. Try again."))
 	}
 	type userView struct {

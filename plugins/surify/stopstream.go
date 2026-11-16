@@ -25,9 +25,9 @@ import (
 // The stop-stream page lets an acting admin see live streams and stop one,
 // with or without a message to the viewer. The page is an admin-only plugin
 // route that isn't in any sidebar; the Gotify page's admin section links to
-// it. Opening it only reads: the read-only key lists live sessions. Stopping
+// it. Opening it only reads: the administrator API key lists live sessions. Stopping
 // is a JSON POST, which the plugin sends to Silo with the stream-control key
-// (admin:sessions:control). That key is never logged or returned.
+// or the previous scoped control key during migration. Neither is logged or returned.
 //
 // Silo's sequenced playback commands (silo-server
 // internal/api/handlers/admin_playback_commands.go, checked at d10d9c93):
@@ -288,7 +288,7 @@ func (p *Plugin) serveSessionsAPI(ctx context.Context, req *pluginv1.HandleHTTPR
 	default:
 		return errorResponse(apiErr(http.StatusNotFound, "not_found", "Not found."))
 	}
-	// Reading needs an acting admin and a working read-only key.
+	// Reading needs an acting admin and a working administrator API key.
 	a, aerr := p.resolveAdmin(ctx, req)
 	if aerr != nil {
 		return errorResponse(aerr)
@@ -298,10 +298,10 @@ func (p *Plugin) serveSessionsAPI(ctx context.Context, req *pluginv1.HandleHTTPR
 	case errors.Is(err, errSiloKeyRejected), errors.Is(err, errSiloKeyScope):
 		return errorResponse(monitorKeyProblem(err))
 	case err != nil:
-		p.logger.Warn("could not list live streams with the read-only Silo key", "error", err)
+		p.logger.Warn("could not list live streams with the Silo administrator API key", "error", err)
 		return errorResponse(apiErr(http.StatusBadGateway, "silo_unavailable", "Couldn't reach Silo to list live streams. Reload the page to try again."))
 	}
-	controlSet := p.config().ControlAPIKey != ""
+	controlSet := p.config().controlKey() != ""
 	if len(rest) == 1 {
 		for i := range rows {
 			if rows[i].SessionID == rest[0] {
@@ -334,7 +334,7 @@ type stopResult struct {
 	Details []string `json:"details"`
 }
 
-const controlKeyFix = " Set it up again from the Silo keys section of the Gotify page (tick “Also allow stopping streams”), or replace it under " + adminFormPath + "."
+const controlKeyFix = " Save the administrator API key in Surify or replace it under " + adminFormPath + "."
 
 // handleStopSession is POST /api/admin/sessions/{id}/stop. serveAPI has
 // already checked that the body is JSON.
@@ -357,9 +357,9 @@ func (p *Plugin) handleStopSession(ctx context.Context, req *pluginv1.HandleHTTP
 	if !sessionIDPattern.MatchString(sessionID) {
 		return errorResponse(apiErr(http.StatusNotFound, "session_ended", "This stream has already ended."))
 	}
-	key := p.config().ControlAPIKey
+	key := p.config().controlKey()
 	if key == "" {
-		return errorResponse(apiErr(http.StatusConflict, "control_key_missing", "Stopping streams needs the plugin's stream-control key (scope admin:sessions:control), which isn't set up."+controlKeyFix))
+		return errorResponse(apiErr(http.StatusConflict, "control_key_missing", "Stopping streams needs the same Silo administrator API key used for monitoring. Save it in Surify."+controlKeyFix))
 	}
 	base, err := p.siloBase(ctx)
 	if err != nil {
@@ -414,7 +414,7 @@ func commandProblem(err error, note string) *apiError {
 	case errors.Is(err, errControlKeyRejected):
 		return apiErr(http.StatusConflict, "control_key_rejected", note+" Silo rejected the plugin's stream-control key; it may have been revoked."+controlKeyFix)
 	case errors.Is(err, errControlKeyScope):
-		return apiErr(http.StatusConflict, "control_key_scope", note+" Silo didn't let the plugin's stream-control key do this. It needs the admin:sessions:control scope and must belong to an enabled admin account."+controlKeyFix)
+		return apiErr(http.StatusConflict, "control_key_scope", note+" Silo didn't let the plugin's stream-control key do this. Use an unrestricted API key belonging to an enabled administrator account."+controlKeyFix)
 	case errors.Is(err, errCommandsUnavailable):
 		return apiErr(http.StatusServiceUnavailable, "commands_unavailable", note+" Silo can't send playback commands right now. Try again in a moment, or stop it from Silo's admin dashboard.")
 	case errors.Is(err, errNoRealtime):

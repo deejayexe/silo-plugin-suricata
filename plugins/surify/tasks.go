@@ -41,7 +41,7 @@ import (
 //     they chose, since a run can't tell a scheduled start from a restart.
 //
 // Both go to admins who switched them on, after their role is re-checked with
-// the read-only key, like every admin alert. A run has Silo's 10 s call
+// the administrator API key, like every admin alert. A run has Silo's 10 s call
 // deadline, so it works inside taskTimeout and fetches everything side by
 // side.
 
@@ -118,10 +118,10 @@ func isKeyError(err error) bool {
 	return errors.Is(err, errSiloKeyRejected) || errors.Is(err, errSiloKeyScope)
 }
 
-// warnKeyRefused logs a refused read-only key once until the key changes.
+// warnKeyRefused logs a refused administrator API key once until the key changes.
 func (p *Plugin) warnKeyRefused(log *slog.Logger, err error) {
 	if !p.adminKeyWarned.Swap(true) {
-		log.Warn("Silo refused the read-only key, so admin alerts are paused until it's fixed. Set up the key again from the admin section of the Gotify page.", "error", err)
+		log.Warn("Silo refused the administrator API key, so admin alerts are paused until it's fixed. Set up the key again from the admin section of the Gotify page.", "error", err)
 	}
 }
 
@@ -553,8 +553,8 @@ func ongoingLine(lines []string) string {
 func (p *Plugin) runHealthCheck(ctx context.Context, now time.Time) (map[string]any, error) {
 	log := p.logger.With("task", capHealthCheck)
 	cfg := p.config()
-	if cfg.MonitorAPIKey == "" {
-		return map[string]any{"status": "skipped: no read-only Silo key"}, nil
+	if cfg.monitorKey() == "" {
+		return map[string]any{"status": "skipped: no Silo administrator API key"}, nil
 	}
 	candidates, err := p.taskAdmins(ctx, log, alertHealth)
 	if err != nil {
@@ -579,19 +579,19 @@ func (p *Plugin) runHealthCheck(ctx context.Context, now time.Time) (map[string]
 	var confirmed []*recipient
 	var stop bool
 	var wg sync.WaitGroup
-	wg.Go(func() { result, readErr = p.readHealth(lctx, log, base, cfg.MonitorAPIKey, now) })
-	wg.Go(func() { confirmed, stop, _ = p.confirmAdmins(lctx, log, base, cfg.MonitorAPIKey, candidates) })
+	wg.Go(func() { result, readErr = p.readHealth(lctx, log, base, cfg.monitorKey(), now) })
+	wg.Go(func() { confirmed, stop, _ = p.confirmAdmins(lctx, log, base, cfg.monitorKey(), candidates) })
 	wg.Wait()
 	cancel()
 	if isKeyError(readErr) {
 		p.warnKeyRefused(log, readErr)
-		return map[string]any{"status": "skipped: Silo refused the read-only key"}, nil
+		return map[string]any{"status": "skipped: Silo refused the administrator API key"}, nil
 	}
 	if readErr != nil {
 		return nil, readErr
 	}
 	if stop {
-		return map[string]any{"status": "skipped: Silo refused the read-only key"}, nil
+		return map[string]any{"status": "skipped: Silo refused the administrator API key"}, nil
 	}
 
 	p.health.mu.Lock()
@@ -865,8 +865,8 @@ func isoWeek(t time.Time) string {
 func (p *Plugin) runDigest(ctx context.Context, now time.Time) (map[string]any, error) {
 	log := p.logger.With("task", capWeeklyDigest)
 	cfg := p.config()
-	if cfg.MonitorAPIKey == "" {
-		return map[string]any{"status": "skipped: no read-only Silo key"}, nil
+	if cfg.monitorKey() == "" {
+		return map[string]any{"status": "skipped: no Silo administrator API key"}, nil
 	}
 	candidates, err := p.taskAdmins(ctx, log, alertDigest)
 	if err != nil {
@@ -914,20 +914,20 @@ func (p *Plugin) runDigest(ctx context.Context, now time.Time) (map[string]any, 
 	var stop, confirmAgain bool
 	var wg sync.WaitGroup
 	wg.Go(func() {
-		stats.top, topErr = p.silo.TopActivity(lctx, base, cfg.MonitorAPIKey, digestDays, digestTopLimit)
+		stats.top, topErr = p.silo.TopActivity(lctx, base, cfg.monitorKey(), digestDays, digestTopLimit)
 	})
-	wg.Go(func() { stats.activity, actErr = p.silo.PlaybackActivity(lctx, base, cfg.MonitorAPIKey, digestDays*24) })
-	wg.Go(func() { confirmed, stop, confirmAgain = p.confirmAdmins(lctx, log, base, cfg.MonitorAPIKey, pending) })
+	wg.Go(func() { stats.activity, actErr = p.silo.PlaybackActivity(lctx, base, cfg.monitorKey(), digestDays*24) })
+	wg.Go(func() { confirmed, stop, confirmAgain = p.confirmAdmins(lctx, log, base, cfg.monitorKey(), pending) })
 	wg.Wait()
 	cancel()
 	for _, err := range []error{topErr, actErr} {
 		if isKeyError(err) {
 			p.warnKeyRefused(log, err)
-			return map[string]any{"status": "skipped: Silo refused the read-only key"}, nil
+			return map[string]any{"status": "skipped: Silo refused the administrator API key"}, nil
 		}
 	}
 	if stop {
-		return map[string]any{"status": "skipped: Silo refused the read-only key"}, nil
+		return map[string]any{"status": "skipped: Silo refused the administrator API key"}, nil
 	}
 	if err := cmp.Or(topErr, actErr); err != nil {
 		log.Warn("could not read the week's statistics", "top_activity", topErr, "playback_activity", actErr)
