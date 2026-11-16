@@ -1,0 +1,649 @@
+{
+  "plugins": [
+    {
+      "binaries": {
+        "linux/amd64": {
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.1/surimatrix-linux-amd64",
+          "checksum": "9614e256d2fa607d90d34cf3c5e8011f9bab3c6a1af3c77e3d77ee230d795096"
+        },
+        "linux/arm64": {
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.1/surimatrix-linux-arm64",
+          "checksum": "bbe60eb7381d2af328c3898ee5e7fd74491940a737fc190ca2ae882356908c2d"
+        }
+      },
+      "checksums_url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.1/checksums.txt",
+      "manifest": {
+        "plugin_id": "silo.surimatrix",
+        "version": "0.0.1",
+        "silo_api_version": "v1",
+        "supported_platforms": [
+          {
+            "os": "linux",
+            "arch": "amd64"
+          },
+          {
+            "os": "linux",
+            "arch": "arm64"
+          }
+        ],
+        "capabilities": [
+          {
+            "type": "scheduled_task.v1",
+            "id": "recently_added",
+            "display_name": "Surimatrix · New content",
+            "description": "Send encrypted notifications for newly added content. Schedule every minute."
+          },
+          {
+            "type": "http_routes.v1",
+            "id": "surimatrix_ui",
+            "display_name": "Surimatrix",
+            "description": "Administrator settings and encrypted delivery tests."
+          }
+        ],
+        "global_config_schema": [
+          {
+            "key": "matrix",
+            "title": "Surimatrix",
+            "description": "Send Silo library notifications directly to an encrypted Matrix room.",
+            "json_schema": "{\"type\": \"object\", \"properties\": {\"enabled\": {\"type\": \"boolean\", \"title\": \"Automatic notifications\", \"description\": \"Enable delivery of new library content. Schedule the New content task every minute.\"}, \"homeserver\": {\"type\": \"string\", \"title\": \"Matrix homeserver\", \"description\": \"HTTPS base URL of the Matrix server, not the Element website.\"}, \"user_id\": {\"type\": \"string\", \"title\": \"Matrix bot account\", \"description\": \"Full Matrix user ID for the account that sends notifications.\"}, \"access_token\": {\"type\": \"string\", \"title\": \"Matrix access token\", \"description\": \"Access token for a dedicated Surimatrix device. Keep the same token when updating.\"}, \"device_id\": {\"type\": \"string\", \"title\": \"Matrix device ID\", \"description\": \"Device ID belonging to the bot access token. Do not reuse an Element device.\"}, \"room_id\": {\"type\": \"string\", \"title\": \"Encrypted room ID\", \"description\": \"Internal Matrix room ID. The bot must have joined this encrypted room.\"}, \"state_dir\": {\"type\": \"string\", \"title\": \"Persistent storage directory\", \"description\": \"Absolute writable directory inside Silo’s container. Stores Matrix keys and pending notifications.\"}, \"silo_url\": {\"type\": \"string\", \"title\": \"Silo server URL\", \"description\": \"HTTPS base URL of this Silo server.\"}, \"silo_key\": {\"type\": \"string\", \"title\": \"Silo administrator API key\", \"description\": \"One administrator API key without scope restrictions, used for both library changes and item posters. A monitor-only key cannot read item details.\"}, \"libraries\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}, \"title\": \"Automatic library filter (optional)\", \"description\": \"Advanced library ID filter for automatic notifications. Leave empty for all libraries. Manual sends have a library selector.\"}, \"silo_username\": {\"type\": \"string\", \"title\": \"Silo username (optional)\", \"description\": \"Normal username of the API key owner. Leave empty to detect it automatically. The primary profile is selected automatically.\"}, \"message_title\": {\"type\": \"string\", \"title\": \"Notification title (optional)\", \"description\": \"Leave empty to use the server name from Silo settings. Set a custom title only to override it.\"}}, \"additionalProperties\": false}",
+            "admin_form": {
+              "fields": [
+                {
+                  "key": "enabled",
+                  "label": "Automatic notifications",
+                  "description": "Enable delivery of new library content. Schedule the New content task every minute.",
+                  "control": 5
+                },
+                {
+                  "key": "homeserver",
+                  "label": "Matrix homeserver",
+                  "description": "HTTPS base URL of the Matrix server, not the Element website.",
+                  "control": 1,
+                  "placeholder": "https://matrix.example.com"
+                },
+                {
+                  "key": "user_id",
+                  "label": "Matrix bot account",
+                  "description": "Full Matrix user ID for the account that sends notifications.",
+                  "control": 1,
+                  "placeholder": "@silo-bot:example.com"
+                },
+                {
+                  "key": "access_token",
+                  "label": "Matrix access token",
+                  "description": "Access token for a dedicated Surimatrix device. Keep the same token when updating.",
+                  "control": 3,
+                  "secret": true
+                },
+                {
+                  "key": "device_id",
+                  "label": "Matrix device ID",
+                  "description": "Device ID belonging to the bot access token. Do not reuse an Element device.",
+                  "control": 1,
+                  "placeholder": "SURIMATRIX"
+                },
+                {
+                  "key": "room_id",
+                  "label": "Encrypted room ID",
+                  "description": "Internal Matrix room ID. The bot must have joined this encrypted room.",
+                  "control": 1,
+                  "placeholder": "!room:example.com"
+                },
+                {
+                  "key": "state_dir",
+                  "label": "Persistent storage directory",
+                  "description": "Absolute writable directory inside Silo’s container. Stores Matrix keys and pending notifications.",
+                  "control": 1,
+                  "placeholder": "/config/surimatrix"
+                },
+                {
+                  "key": "silo_url",
+                  "label": "Silo server URL",
+                  "description": "HTTPS base URL of this Silo server.",
+                  "control": 1,
+                  "placeholder": "https://silo.example.com"
+                },
+                {
+                  "key": "silo_key",
+                  "label": "Silo administrator API key",
+                  "description": "One administrator API key without scope restrictions, used for both library changes and item posters. A monitor-only key cannot read item details.",
+                  "control": 3,
+                  "secret": true
+                },
+                {
+                  "key": "silo_username",
+                  "label": "Silo username (optional)",
+                  "description": "Normal username of the API key owner. Leave empty to detect it automatically. The primary profile is selected automatically.",
+                  "control": 1,
+                  "placeholder": "admin"
+                },
+                {
+                  "key": "message_title",
+                  "label": "Notification title (optional)",
+                  "description": "Leave empty to use the server name from Silo settings. Set a custom title only to override it.",
+                  "control": 1,
+                  "placeholder": "Automatic: Silo server name"
+                }
+              ],
+              "submit_label": "Save settings"
+            }
+          }
+        ],
+        "http_routes": [
+          {
+            "id": "panel",
+            "method": "GET",
+            "path": "/",
+            "access": "admin",
+            "navigable": true,
+            "navigation_label": "Surimatrix",
+            "navigation_kind": "admin"
+          },
+          {
+            "id": "logo",
+            "method": "GET",
+            "path": "/logo.png",
+            "access": "admin"
+          },
+          {
+            "id": "test",
+            "method": "POST",
+            "path": "/api/test",
+            "access": "admin"
+          },
+          {
+            "id": "check-silo",
+            "method": "POST",
+            "path": "/api/check-silo",
+            "access": "admin"
+          },
+          {
+            "id": "test-poster",
+            "method": "POST",
+            "path": "/api/test-poster",
+            "access": "admin"
+          },
+          {
+            "id": "libraries",
+            "method": "GET",
+            "path": "/api/libraries",
+            "access": "admin"
+          },
+          {
+            "id": "send-latest-movie",
+            "method": "POST",
+            "path": "/api/send-latest-movie",
+            "access": "admin"
+          },
+          {
+            "id": "send-latest-episode",
+            "method": "POST",
+            "path": "/api/send-latest-episode",
+            "access": "admin"
+          }
+        ],
+        "category": "Notifications",
+        "presentation": {
+          "display_name": "Surimatrix",
+          "summary": "Encrypted Matrix notifications for new Silo library content.",
+          "description_markdown": "Send new movies and episodes directly from Silo to an encrypted Matrix room, with native poster attachments, episode grouping and persistent delivery state. Administrator access only.",
+          "setup_markdown": "Configure the Silo administrator API key, Matrix bot, encrypted room and a writable persistent directory. Open Surimatrix to check the connection and send a poster test. Enable automatic notifications and schedule the New content task every minute.",
+          "homepage_url": "https://github.com/deejayexe/silo-plugin-suricata/tree/main/plugins/surimatrix",
+          "source_url": "https://github.com/deejayexe/silo-plugin-suricata",
+          "support_url": "https://github.com/deejayexe/silo-plugin-suricata/issues",
+          "changelog_url": "https://github.com/deejayexe/silo-plugin-suricata/releases",
+          "publisher_name": "deejayexe",
+          "publisher_url": "https://github.com/deejayexe",
+          "license_spdx": "MIT"
+        }
+      },
+      "repo_url": "https://github.com/deejayexe/silo-plugin-suricata"
+    },
+    {
+      "binaries": {
+        "linux/amd64": {
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.1/surify-linux-amd64",
+          "checksum": "b825429deac1e7fe7d613b2e47e03e3449813094a2ef1d983a07cb9f2e924860"
+        },
+        "linux/arm64": {
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.1/surify-linux-arm64",
+          "checksum": "d08f0f124cfd685d9d3e22e00f762ba084d989906d081af3a43016af2169a030"
+        },
+        "darwin/arm64": {
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.1/surify-darwin-arm64",
+          "checksum": "ae4969ea4e69e5fd421eaad35c08fa2709f3168497c3a151159ec0f212787394"
+        }
+      },
+      "checksums_url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.1/checksums.txt",
+      "manifest": {
+        "plugin_id": "silo.gotify",
+        "version": "0.0.1",
+        "silo_api_version": "v1",
+        "supported_platforms": [
+          {
+            "os": "linux",
+            "arch": "amd64"
+          },
+          {
+            "os": "linux",
+            "arch": "arm64"
+          },
+          {
+            "os": "darwin",
+            "arch": "arm64"
+          }
+        ],
+        "capabilities": [
+          {
+            "type": "event_consumer.v1",
+            "id": "gotify_events",
+            "display_name": "Surify delivery",
+            "description": "Administrator-only delivery of Silo notifications, playback events, watchdog and failure alerts.",
+            "subscriptions": [
+              "notification.created",
+              "session.started",
+              "session.paused",
+              "session.resumed",
+              "session.stopped",
+              "scan.failed",
+              "job.failed"
+            ]
+          },
+          {
+            "type": "http_routes.v1",
+            "id": "gotify_ui",
+            "display_name": "Surify settings",
+            "description": "Administrator-only Gotify connection and alert settings."
+          },
+          {
+            "type": "scheduled_task.v1",
+            "id": "health_check",
+            "display_name": "Surify server health check",
+            "description": "Checks Silo's stream nodes, restart state, database and Redis, and the server's disk and memory, and sends a Gotify alert (and a recovery alert) to admins who turned it on. Needs the read-only Silo key. Suggested schedule: every 5 minutes."
+          },
+          {
+            "type": "scheduled_task.v1",
+            "id": "weekly_digest",
+            "display_name": "Surify weekly digest",
+            "description": "Sends admins who turned it on a Gotify summary of the last 7 days: plays, time watched, top viewers and top titles. Each admin picks their own day and hour (default Sunday 18:00, in their time zone) and a run sends it in that hour or in any later run within 6 hours after (so a week isn't lost if Silo was down), at most once a week, so schedule it to run every hour. Needs the read-only Silo key. Suggested schedule: every 1 hour."
+          },
+          {
+            "type": "scheduled_task.v1",
+            "id": "recently_added",
+            "display_name": "Surify new library content",
+            "description": "Checks newly added movies and episodes with a resumable catalog cursor. Suggested schedule: every 2 minutes. No initial library flood. Requires admin:monitor:read. Posters/overview depend on host availability."
+          }
+        ],
+        "global_config_schema": [
+          {
+            "key": "gotify",
+            "title": "Surify",
+            "description": "Administrator-only Gotify delivery. Shared defaults are optional; each administrator can use a separate destination.",
+            "json_schema": "{\"type\": \"object\", \"properties\": {\"default_app_token\": {\"type\": \"string\", \"writeOnly\": true}, \"public_url\": {\"type\": \"string\"}, \"monitor_api_key\": {\"type\": \"string\", \"writeOnly\": true}, \"control_api_key\": {\"type\": \"string\", \"writeOnly\": true}, \"default_server_url\": {\"type\": \"string\"}}, \"additionalProperties\": false}",
+            "admin_form": {
+              "fields": [
+                {
+                  "key": "default_server_url",
+                  "label": "Shared Gotify server URL (optional)",
+                  "description": "The shared application token is only used for this exact server URL.",
+                  "control": 1,
+                  "placeholder": "https://gotify.example.com"
+                },
+                {
+                  "key": "default_app_token",
+                  "label": "Shared Gotify application token (optional)",
+                  "description": "Optional shared token for administrators using the configured shared Gotify server URL.",
+                  "control": 3,
+                  "secret": true
+                },
+                {
+                  "key": "public_url",
+                  "label": "Public URL override (optional)",
+                  "description": "Base URL for \"Open in Silo\" links. Defaults to the server's configured public URL.",
+                  "control": 1,
+                  "placeholder": "https://silo.example.com"
+                },
+                {
+                  "key": "monitor_api_key",
+                  "label": "Read-only Silo key (admin:monitor:read)",
+                  "description": "Required for automatic delivery. The plugin verifies that recipients are still enabled administrators. Use only the admin:monitor:read scope; configure it from the Surify panel.",
+                  "control": 3,
+                  "secret": true
+                },
+                {
+                  "key": "control_api_key",
+                  "label": "Stream-control Silo key (optional)",
+                  "description": "Only needed to stop streams. Leave blank when editing to keep the saved secret.",
+                  "control": 3,
+                  "secret": true
+                }
+              ],
+              "submit_label": "Save settings",
+              "sections": [
+                {
+                  "key": "gotify",
+                  "title": "Surify — Gotify connection",
+                  "field_keys": [
+                    "default_server_url",
+                    "default_app_token",
+                    "public_url"
+                  ]
+                },
+                {
+                  "key": "silo_keys",
+                  "title": "Silo API keys (optional)",
+                  "description": "Scoped keys let the plugin read from Silo without full admin access. Silo's API Keys page creates only full-access keys, so the easiest way to get these is to open Admin \u003e Surify as an admin and use \"Set up the read-only key\": paste a full-access key once and the plugin creates the scoped keys, saves them here and can revoke the full-access key.",
+                  "field_keys": [
+                    "monitor_api_key",
+                    "control_api_key"
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "http_routes": [
+          {
+            "id": "settings-page",
+            "method": "GET",
+            "path": "/",
+            "access": "admin",
+            "navigable": true,
+            "navigation_label": "Surify",
+            "navigation_kind": "admin"
+          },
+          {
+            "id": "settings-api",
+            "method": "*",
+            "path": "/api/*",
+            "access": "admin"
+          },
+          {
+            "id": "stop-stream-page",
+            "method": "GET",
+            "path": "/admin/sessions/*",
+            "access": "admin"
+          },
+          {
+            "id": "stop-stream-api",
+            "method": "*",
+            "path": "/api/admin/sessions/*",
+            "access": "admin"
+          },
+          {
+            "id": "surify-logo",
+            "method": "GET",
+            "path": "/assets/surify.png",
+            "access": "admin"
+          },
+          {
+            "id": "surify-logo-webp",
+            "method": "GET",
+            "path": "/assets/surify.webp",
+            "access": "admin"
+          }
+        ],
+        "metadata": {
+          "configuration_check": true
+        },
+        "category": "Notifications",
+        "presentation": {
+          "display_name": "Surify",
+          "summary": "Administrator-only Silo notifications through Gotify: playback, watchdogs, failures and server health.",
+          "description_markdown": "![Surify](https://raw.githubusercontent.com/deejayexe/silo-plugin-suricata/main/plugins/surify/web/surify-logo.webp)\n\nSend Silo notifications to a self-hosted Gotify server. Administrator notifications, episode grouping, quiet hours, custom templates, playback and failure alerts, stream watchdogs, server health and recovery checks, weekly digests and links to Silo’s native activity page. Uses the same Silo events and scoped Silo API calls as the MIT-licensed plugin by Josh Black. Gotify uses application tokens, Markdown links and priorities 0, 2, 5, 8 and 10. Sounds and device selection are managed in the Gotify client. New library content can include a Markdown poster and Android big image when Silo exposes a usable image URL. Repeating alerts and binary poster uploads are not supported. Access is restricted to administrators on their primary profile. Other users cannot see the navigation entry or access the pages/API. Before background delivery, Silo must confirm the recipient is still an enabled administrator. Connections from older builds remain inactive until saved by the administrator after upgrading.",
+          "setup_markdown": "1. Sign in to Silo as an administrator on your primary profile. Open Surify from the administrator navigation.\n2. Create a Gotify application and copy its private application token (legacy or gtfya.…). Save the server URL and token on the Connection tab. After upgrading from an earlier build, save the existing connection once to activate administrator-only delivery.\n3. Check the server and send a test notification.\n4. Set up the scoped Silo read-only key (admin:monitor:read). Automatic delivery requires this key to verify recipient roles. Live sessions are available in Silo’s native Admin \u003e Activity page.\n5. Configure server alerts. Bind health_check to every 5 minutes and weekly_digest to every hour, then restart Silo after changing task bindings. Ordinary users and secondary profiles cannot access this plugin. \n6. For the new library content alert, enable New library content in Server alerts, bind recently_added to an interval of 2 minutes, and restart Silo after changing the binding. Existing library items are not announced. Artwork uses public/resolved Silo URLs when available.",
+          "homepage_url": "https://github.com/deejayexe/silo-plugin-suricata/tree/main/plugins/surify",
+          "source_url": "https://github.com/deejayexe/silo-plugin-suricata",
+          "support_url": "https://github.com/deejayexe/silo-plugin-suricata/issues",
+          "changelog_url": "https://github.com/deejayexe/silo-plugin-suricata/releases",
+          "publisher_name": "deejayexe",
+          "publisher_url": "https://github.com/deejayexe",
+          "license_spdx": "MIT"
+        }
+      },
+      "repo_url": "https://github.com/deejayexe/silo-plugin-suricata"
+    },
+    {
+      "binaries": {
+        "linux/amd64": {
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.1/duplicata-linux-amd64",
+          "checksum": "c2960b0babe25dcbefe052a4dfa8c45ace81b0a8bfa3fc7f31fc3dd5420b2f57"
+        },
+        "linux/arm64": {
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.1/duplicata-linux-arm64",
+          "checksum": "cf71db4461a3766d551c7ccf1ea404ec5d7f9248ebe5b8d7206d2dc56aa5efb0"
+        }
+      },
+      "checksums_url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.1/checksums.txt",
+      "manifest": {
+        "plugin_id": "community.duplicata-versions",
+        "version": "0.1.1",
+        "silo_api_version": "v1",
+        "supported_platforms": [
+          {
+            "os": "linux",
+            "arch": "amd64"
+          },
+          {
+            "os": "linux",
+            "arch": "arm64"
+          }
+        ],
+        "capabilities": [
+          {
+            "type": "http_routes.v1",
+            "id": "review",
+            "display_name": "Duplicata Versions",
+            "description": "Review and manage versions within a Silo library."
+          }
+        ],
+        "global_config_schema": [
+          {
+            "key": "connection",
+            "title": "Silo connection",
+            "description": "Administrator API key with access to the catalog and administrative file queries.",
+            "json_schema": "{\"type\": \"object\", \"properties\": {\"api_key\": {\"type\": \"string\", \"writeOnly\": true, \"maxLength\": 512}, \"base_url\": {\"type\": \"string\", \"maxLength\": 2048}, \"profile_id\": {\"type\": \"string\", \"maxLength\": 200}}, \"additionalProperties\": false}",
+            "admin_form": {
+              "fields": [
+                {
+                  "key": "api_key",
+                  "label": "Administrator API key",
+                  "description": "Stored by Silo. Leave blank when editing to keep the saved secret.",
+                  "control": 3,
+                  "placeholder": "sa_…",
+                  "secret": true
+                },
+                {
+                  "key": "base_url",
+                  "label": "Server URL (optional)",
+                  "description": "Without /api/v2. Set only when an explicit server address is needed.",
+                  "control": 1,
+                  "placeholder": "Blank: internal Silo address"
+                },
+                {
+                  "key": "profile_id",
+                  "label": "Profile name (optional)",
+                  "description": "Uses the primary profile of the API key account by default. A profile ID is also accepted.",
+                  "control": 1,
+                  "placeholder": "Automatic: primary profile"
+                }
+              ],
+              "submit_label": "Save"
+            }
+          },
+          {
+            "key": "analysis",
+            "title": "Scan",
+            "description": "Up to 100,000 items per query, including episodes; scans stop after 2 hours. Respects Retry-After and stops if Silo continues rejecting requests.",
+            "json_schema": "{\"type\": \"object\", \"properties\": {\"requests_per_second\": {\"type\": \"number\", \"minimum\": 1, \"maximum\": 100, \"default\": 100}, \"concurrency\": {\"type\": \"integer\", \"minimum\": 1, \"maximum\": 16, \"default\": 16}}, \"additionalProperties\": false}",
+            "admin_form": {
+              "fields": [
+                {
+                  "key": "requests_per_second",
+                  "label": "Maximum requests per second",
+                  "description": "1–100 requests/s. Default: 100. Use a dedicated plugin API key configured for 100 requests/s, 6000/min and burst 100. Retry-After is respected.",
+                  "control": 4,
+                  "default_value": 100,
+                  "validation": {
+                    "has_min": true,
+                    "min": 1,
+                    "has_max": true,
+                    "max": 100
+                  }
+                },
+                {
+                  "key": "concurrency",
+                  "label": "Concurrent requests",
+                  "description": "1–16 simultaneous requests. Default: 16. The shared plugin request rate still applies.",
+                  "control": 4,
+                  "default_value": 16,
+                  "validation": {
+                    "has_min": true,
+                    "min": 1,
+                    "has_max": true,
+                    "max": 16
+                  }
+                }
+              ],
+              "submit_label": "Save"
+            }
+          },
+          {
+            "key": "deletion",
+            "title": "File deletion",
+            "description": "Disabled by default. Requires write access. Empty episode folders are cleaned up within the authorized root; companion files are retained.",
+            "json_schema": "{\"type\": \"object\", \"properties\": {\"delete_enabled\": {\"type\": \"boolean\", \"default\": false}, \"media_roots\": {\"type\": \"string\", \"maxLength\": 4096}}, \"additionalProperties\": false}",
+            "admin_form": {
+              "fields": [
+                {
+                  "key": "delete_enabled",
+                  "label": "Enable file deletion",
+                  "control": 5,
+                  "default_value": false
+                },
+                {
+                  "key": "media_roots",
+                  "label": "Authorized folders (one absolute path per line)",
+                  "description": "Real paths inside the Silo container. Library symlinks must resolve inside these folders. The filesystem root / is not allowed.",
+                  "control": 2,
+                  "placeholder": "/share/mix"
+                }
+              ],
+              "submit_label": "Save"
+            }
+          }
+        ],
+        "http_routes": [
+          {
+            "id": "page",
+            "method": "GET",
+            "path": "/",
+            "access": "admin",
+            "navigable": true,
+            "navigation_label": "Duplicata Versions",
+            "navigation_kind": "admin"
+          },
+          {
+            "id": "status",
+            "method": "GET",
+            "path": "/status",
+            "access": "admin"
+          },
+          {
+            "id": "results",
+            "method": "GET",
+            "path": "/results",
+            "access": "admin"
+          },
+          {
+            "id": "check",
+            "method": "GET",
+            "path": "/check",
+            "access": "admin"
+          },
+          {
+            "id": "libraries",
+            "method": "GET",
+            "path": "/libraries",
+            "access": "admin"
+          },
+          {
+            "id": "scan",
+            "method": "POST",
+            "path": "/scan",
+            "access": "admin"
+          },
+          {
+            "id": "cancel",
+            "method": "POST",
+            "path": "/cancel",
+            "access": "admin"
+          },
+          {
+            "id": "clear",
+            "method": "POST",
+            "path": "/clear",
+            "access": "admin"
+          },
+          {
+            "id": "assets",
+            "method": "GET",
+            "path": "/assets/*",
+            "access": "admin"
+          },
+          {
+            "id": "poster",
+            "method": "GET",
+            "path": "/poster",
+            "access": "admin"
+          },
+          {
+            "id": "delete-preview",
+            "method": "POST",
+            "path": "/delete/preview",
+            "access": "admin"
+          },
+          {
+            "id": "delete-confirm",
+            "method": "POST",
+            "path": "/delete/confirm",
+            "access": "admin"
+          },
+          {
+            "id": "history",
+            "method": "GET",
+            "path": "/history",
+            "access": "admin"
+          },
+          {
+            "id": "history-remove",
+            "method": "POST",
+            "path": "/history/remove",
+            "access": "admin"
+          },
+          {
+            "id": "history-restore",
+            "method": "POST",
+            "path": "/history/restore",
+            "access": "admin"
+          }
+        ],
+        "category": "tools",
+        "presentation": {
+          "display_name": "Duplicata Versions",
+          "summary": "Version management for your Silo libraries. Review and remove duplicate items.",
+          "description_markdown": "Compare movie and episode versions by path, size, codecs, duration and edition. Optional manual deletion retains another verified path. Hardlinks are supported. No direct database access. Includes resumable in-memory analysis history and responsive mobile version cards. Shows estimated released space per deleted file and per analysis, including history.",
+          "setup_markdown": "1. Save an administrator API key.\n2. Open Duplicata Versions, check the connection and scan a library.\n3. To delete files, configure authorized real folders, enable deletion and allow write access in the Silo container. Scan again after changing settings.\n4. Review the resolved path and retained copy before confirming. Deletion is permanent. Silo updates its catalog on its next library scan.\n\nResults are held in memory. Use at your own risk; you are responsible for accidental deletion and misuse.",
+          "homepage_url": "https://github.com/deejayexe/silo-plugin-suricata/tree/main/plugins/duplicata",
+          "source_url": "https://github.com/deejayexe/silo-plugin-suricata",
+          "support_url": "https://github.com/deejayexe/silo-plugin-suricata/issues",
+          "changelog_url": "https://github.com/deejayexe/silo-plugin-suricata/releases",
+          "publisher_name": "deejayexe",
+          "publisher_url": "https://github.com/deejayexe",
+          "license_spdx": "MIT"
+        }
+      },
+      "repo_url": "https://github.com/deejayexe/silo-plugin-suricata"
+    }
+  ]
+}
