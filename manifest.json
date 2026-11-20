@@ -3,18 +3,18 @@
     {
       "binaries": {
         "linux/amd64": {
-          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/surimatrix-linux-amd64",
-          "checksum": "31028222263e462a31089422079638c1641b95bee408e5bc4128811eca3c129f"
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.4/surimatrix-linux-amd64",
+          "checksum": "7e90f13b9cc1257c96cef6704dd3eb67aff3d740e6e6bffe06411a265ab903cf"
         },
         "linux/arm64": {
-          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/surimatrix-linux-arm64",
-          "checksum": "79cfeaafaddf94a9854190fd5ce424b686896fbef865b6610654af3533025952"
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.4/surimatrix-linux-arm64",
+          "checksum": "3ebc728f11f523347f8ed07c4b2d3df511c8c5401f9628ceb4564c5d8d1263b3"
         }
       },
-      "checksums_url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/checksums.txt",
+      "checksums_url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.4/checksums.txt",
       "manifest": {
         "plugin_id": "silo.surimatrix",
-        "version": "0.0.1",
+        "version": "0.0.2",
         "silo_api_version": "v1",
         "supported_platforms": [
           {
@@ -202,22 +202,22 @@
     {
       "binaries": {
         "linux/amd64": {
-          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/surify-linux-amd64",
-          "checksum": "4b611b195e3001b4bbaf33220199e076368c3c12c4a9261b0a0e1e5870644b81"
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.4/surify-linux-amd64",
+          "checksum": "4164a4b25059a9889e962eeeb4d4100bd110623feceef4f81091a8574afee6d7"
         },
         "linux/arm64": {
-          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/surify-linux-arm64",
-          "checksum": "3542fed4e993eb9bcc1f8f93b03e701439688830235cf65ef0417e556715d8d4"
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.4/surify-linux-arm64",
+          "checksum": "0bcd628bbafdfa3567762048c361f6f2ccaf65cd87c36d01420cd99a9ea8ef21"
         },
         "darwin/arm64": {
-          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/surify-darwin-arm64",
-          "checksum": "f7ca6e1e5c6132027704c7bb234d955911ebb4ac926cd7898f39910a7c3ab9be"
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.4/surify-darwin-arm64",
+          "checksum": "026d2c9a226f5d316754e5fde23cd148a1d4ae545a01c926d4e26c83ba460b2f"
         }
       },
-      "checksums_url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/checksums.txt",
+      "checksums_url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.4/checksums.txt",
       "manifest": {
         "plugin_id": "silo.gotify",
-        "version": "0.0.2",
+        "version": "0.0.3",
         "silo_api_version": "v1",
         "supported_platforms": [
           {
@@ -399,18 +399,18 @@
     {
       "binaries": {
         "linux/amd64": {
-          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/duplicata-linux-amd64",
-          "checksum": "61e2e77f46a333e783232340bab0fd5dff7a8e8db1011e9123da8cc75886eb73"
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.4/duplicata-linux-amd64",
+          "checksum": "89cb4c52a164c03a28dccf50a3dcfdc35709b56e1235d497031e5b0424f1d407"
         },
         "linux/arm64": {
-          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/duplicata-linux-arm64",
-          "checksum": "147ae08e04d9513d895e3490181dc3f2218e11a82f22cbedbe346e1cca405a3b"
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.4/duplicata-linux-arm64",
+          "checksum": "874974a410100ce5a8dc6fe6f8e611d31096ce9fb5d2797a64da68487e3a1961"
         }
       },
-      "checksums_url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/checksums.txt",
+      "checksums_url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.4/checksums.txt",
       "manifest": {
         "plugin_id": "community.duplicata-versions",
-        "version": "0.1.1",
+        "version": "0.1.2",
         "silo_api_version": "v1",
         "supported_platforms": [
           {
@@ -641,18 +641,18 @@
     {
       "binaries": {
         "linux/amd64": {
-          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/surichat-linux-amd64",
-          "checksum": "18df6efbb1a925816d97d92229ffa07581bc2d5b1ee5e25d090052e0e2ef4526"
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.4/surichat-linux-amd64",
+          "checksum": "1e5983240651ad1c4e1033a6f9466b763ae44016fea7177b0f1c9666e536f45b"
         },
         "linux/arm64": {
-          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/surichat-linux-arm64",
-          "checksum": "81f6b5421d5a16354d97450a7e0a940e462521925d9b3cf9923e19c9b82442cc"
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.4/surichat-linux-arm64",
+          "checksum": "deb5e273576dbec16987d7c74d8787b6005345869b4753a980bc032e7ba6e15f"
         }
       },
-      "checksums_url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/checksums.txt",
+      "checksums_url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.4/checksums.txt",
       "manifest": {
         "plugin_id": "local.silo-soporte",
-        "version": "0.4.5",
+        "version": "0.4.6",
         "silo_api_version": "v1",
         "supported_platforms": [
           {
