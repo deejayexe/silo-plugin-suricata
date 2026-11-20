@@ -125,3 +125,15 @@ func TestReminderMigrationRetiresPreviouslyEligibleMessages(t *testing.T) {
 		t.Fatalf("migration yielded prior=%d newer=%d err=%v", prior, newer, err)
 	}
 }
+
+func TestMailSettingsNormalizePortAndRejectUnusedPassword(t *testing.T) {
+	settings := mailSettings{host: "smtp.example.test", port: "0465", from: "sender@example.test", supportEmail: "support@example.test"}
+	validated, err := settings.validated()
+	if err != nil || validated.port != "465" {
+		t.Fatalf("expected direct TLS port 465: %q, %v", validated.port, err)
+	}
+	settings.password = "example-password"
+	if _, err := settings.validated(); err == nil {
+		t.Fatal("expected validation error for an SMTP password without a username")
+	}
+}

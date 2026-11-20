@@ -81,7 +81,7 @@ func (s *support) configure(_ context.Context, entries []*pb.ConfigEntry) error 
 		}
 	}
 	if cfg.database == "" {
-		cfg.database = "/config/silo/soporte/chat.sqlite"
+		cfg.database = "/config/silo/surichat/chat.sqlite"
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -213,7 +213,7 @@ func (s *support) Handle(ctx context.Context, req *pb.HandleHTTPRequest) (*pb.Ha
 	}
 	db, cfg, err := s.storage(ctx)
 	if err != nil {
-		log.Printf("soporte: almacenamiento: %v", err)
+		log.Printf("surichat: almacenamiento: %v", err)
 		return fail(503, "No se pudo abrir el historial. Comprueba la ruta y los permisos de SQLite."), nil
 	}
 	switch path {
@@ -433,7 +433,7 @@ func (s *support) send(ctx context.Context, db *sql.DB, cfg settings, v httprout
 }
 
 func databaseError(err error) *pb.HandleHTTPResponse {
-	log.Printf("soporte: consulta SQLite: %v", err)
+	log.Printf("surichat: consulta SQLite: %v", err)
 	return fail(500, "No se pudo acceder al historial.")
 }
 
