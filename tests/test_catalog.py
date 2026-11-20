@@ -43,7 +43,7 @@ class CatalogTests(unittest.TestCase):
                         self.assertEqual(packaged["supported_platforms"], [dict(os=osname, arch=arch)])
                         self.assertTrue(z.getinfo("plugin").external_attr >> 16 & 0o111)
                 if manifest["plugin_id"] == "community.duplicata-versions":
-                    self.assertEqual(manifest["version"], "0.1.1-dev.123.1")
+                    self.assertEqual(manifest["version"], "0.1.2-dev.123.1")
 
     def test_missing_binary_prevents_catalog_publication(self):
         with tempfile.TemporaryDirectory() as tmp:

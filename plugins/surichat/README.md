@@ -20,7 +20,7 @@ Refresh the catalog and install **Surichat**. For manual installation, download 
 
 1. In **Surichat settings**, set **Absolute SQLite path** to a writable, persistent path inside your Silo server or container. The plugin creates the database when first opened. Copy the database before reinstalling and point the new installation to the same file to keep your chat history.
 2. To let administrators start a conversation and look up notification recipients, set **Internal Silo URL** and save a dedicated **Administrator API key** with the `admin:monitor:read` scope. Use the server base URL, for example `http://127.0.0.1:8080` with the standard Silo Docker setup.
-3. Open **Surichat** from the Silo Web user menu. Users can write to their Silo administrator. Administrators see unread counts by conversation and can start a chat from the list of enabled user accounts.
+3. Open **Surichat** from the Silo Web user menu. Users can write to their Silo administrator. Administrators see unread counts by conversation and can start a chat from the list of enabled user accounts. Press **Enter** to send or **Shift+Enter** to add a line break.
 
 ## Email reminders
 

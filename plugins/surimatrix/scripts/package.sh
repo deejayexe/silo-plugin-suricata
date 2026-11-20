@@ -3,7 +3,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 arch="$(go env GOARCH)"
 mkdir -p dist
-build_version="${BUILD_VERSION:-0.0.1}"
+build_version="${BUILD_VERSION:-0.0.2}"
 CGO_ENABLED=1 go build -tags goolm -trimpath -ldflags="-s -w -X main.version=$build_version" -o dist/plugin .
 cp dist/plugin "dist/plugin-linux-$arch"
 python3 - "$arch" "$build_version" <<'PY'

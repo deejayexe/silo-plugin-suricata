@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Surify API",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "Administrator-only API through the Silo plugin proxy. Every page and endpoint requires an administrator on their primary profile, including state, API documentation, connection checks and tests. Only the active administrator connection can be managed. Silo strips user-supplied identity headers. Background delivery uses one unrestricted administrator API key and a fresh check that recipients remain enabled administrators. The recently_added scheduled task offers opt-in library.added alerts with cursor-based first-seen detection; optional URL artwork uses Gotify Markdown and Android big images. Live-stream pages redirect to /admin/activity; legacy control endpoints remain for compatibility."
   },
   "servers": [

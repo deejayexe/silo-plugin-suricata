@@ -26,7 +26,7 @@ func TestBrandedReminderUsesSignInAndInlineWordmark(t *testing.T) {
 		}
 		switch r.URL.Path {
 		case "/api/v2/theme/branding":
-			io.WriteString(w, `{"server_name":"Example & Silo","wordmark_url":"/api/v2/branding/assets/wordmark?v=test"}`)
+			io.WriteString(w, `{"server_name":"Example & Silo","accent_color":"#1A2473","wordmark_url":"/api/v2/branding/assets/wordmark?v=test"}`)
 		case "/api/v2/branding/assets/wordmark":
 			if r.URL.Query().Get("v") != "test" {
 				t.Error("asset version missing")
@@ -84,13 +84,13 @@ func TestBrandedReminderUsesSignInAndInlineWordmark(t *testing.T) {
 		return string(body)
 	}
 	alt := reader(msg.Header.Get("Content-Type"), "multipart/alternative", msg.Body)
-	if plain := all(part(alt)); !strings.Contains(plain, cfg.webURL) || !strings.Contains(plain, "Sign in") || !strings.Contains(plain, "Mensajes pendientes en Surichat en Example & Silo") || !strings.Contains(plain, "Unread Surichat messages on Example & Silo") {
+	if plain := all(part(alt)); !strings.Contains(plain, cfg.webURL) || !strings.Contains(plain, "Sign in") || !strings.Contains(plain, "Mensajes pendientes en Surichat - Example & Silo") || !strings.Contains(plain, "Unread Surichat messages - Example & Silo") {
 		t.Fatalf("missing sign-in instructions: %s", plain)
 	}
 	related := part(alt)
 	inside := reader(related.Header.Get("Content-Type"), "multipart/related", related)
 	html := all(part(inside))
-	for _, wanted := range []string{`href="https://silo.example.test/"`, `src="cid:silo-logo"`, "Mensajes pendientes en Surichat en Example &amp; Silo</h1>", "Unread Surichat messages on Example &amp; Silo</h2>", "Tienes 2 mensajes pendientes", "Hola, Lucía &amp; Co.", "Hi Lucía &amp; Co.", "<strong>Surichat</strong>"} {
+	for _, wanted := range []string{`href="https://silo.example.test/"`, `src="cid:silo-logo"`, "Mensajes pendientes en Surichat - Example &amp; Silo</h1>", "Unread Surichat messages - Example &amp; Silo</h2>", "Tienes 2 mensajes pendientes", "Hola, Lucía &amp; Co.", "Hi Lucía &amp; Co.", "<strong>Surichat</strong>", "background-color:#1a2473", "color:#ffffff"} {
 		if !strings.Contains(html, wanted) {
 			t.Errorf("HTML missing %q", wanted)
 		}
@@ -99,5 +99,21 @@ func TestBrandedReminderUsesSignInAndInlineWordmark(t *testing.T) {
 	if logo.Header.Get("Content-ID") != "<silo-logo>" || logo.FileName() != "logo.png" ||
 		all(base64.NewDecoder(base64.StdEncoding, logo)) != string(brand.PNG) {
 		t.Fatal("invalid inline logo")
+	}
+}
+
+func TestReminderButtonFallbackAndLightAccent(t *testing.T) {
+	for _, test := range []struct {
+		accent, background, text string
+	}{
+		{"", "#f59e0b", "#000000"},
+		{"rgb(0, 0, 0)", "#f59e0b", "#000000"},
+		{"#aabbcc", "#aabbcc", "#000000"},
+		{"#101010", "#101010", "#ffffff"},
+	} {
+		background, text := reminderButtonColors(test.accent)
+		if background != test.background || text != test.text {
+			t.Errorf("accent %q: got %s / %s, want %s / %s", test.accent, background, text, test.background, test.text)
+		}
 	}
 }

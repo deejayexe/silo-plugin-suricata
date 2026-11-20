@@ -1,6 +1,6 @@
 {
   "plugin_id": "silo.surimatrix",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "silo_api_version": "v1",
   "category": "Notifications",
   "supported_platforms": [

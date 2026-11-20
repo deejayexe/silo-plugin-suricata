@@ -80,7 +80,7 @@ func run(dir, version, release string) error {
 }
 func main() {
 	dir := flag.String("dir", "dist/release", "directory containing native binaries")
-	version := flag.String("version", "0.0.1", "version")
+	version := flag.String("version", "0.0.2", "version")
 	release := flag.String("release-url", "", "immutable release base URL")
 	flag.Parse()
 	if !strings.HasPrefix(*release, "https://github.com/deejayexe/silo-plugin-suricata/releases/download/") {
