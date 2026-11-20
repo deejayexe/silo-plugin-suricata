@@ -1,6 +1,6 @@
 {
-  "plugin_id": "local.silo-soporte",
-  "version": "0.4.6",
+  "plugin_id": "local.surichat",
+  "version": "0.4.7",
   "checksum": "__CHECKSUM__",
   "silo_api_version": "v1",
   "supported_platforms": [
@@ -26,9 +26,10 @@
       "scheduled_task": {
         "default_trigger": {
           "type": "interval",
-          "interval_ms": 60000
+          "interval_ms": 300000
         }
-      }
+      },
+      "description": "Checks for unread Surichat messages and sends due email reminders."
     }
   ],
   "global_config_schema": [
@@ -191,7 +192,7 @@
     "display_name": "Surichat",
     "summary": "Private support chat for Silo users and administrators.",
     "description_markdown": "![Surichat](https://raw.githubusercontent.com/deejayexe/silo-plugin-suricata/main/plugins/surichat/brand/surichat.png)\n\nPrivate support chat with an administrator inbox, unread counts, and optional email reminders. Messages and read status are stored in an SQLite file on your server. The web interface is available in English and Spanish.",
-    "setup_markdown": "1. Install Surichat from the Suricata catalog. Open Surichat from Silo Web.\n2. Set an absolute path on a writable, persistent volume for the SQLite database.\n3. Configure the internal Silo URL and a dedicated administrator API key with the monitor-read scope to list user accounts.\n4. Optionally enable email reminders and configure SMTP, the support mailbox, and your public Silo URL.",
+    "setup_markdown": "1. Install Surichat from the Suricata catalog. Open Surichat from Silo Web.\n2. Set an absolute path on a writable, persistent volume for the SQLite database.\n3. Configure the internal Silo URL and a dedicated administrator API key with the monitor-read scope to list user accounts.\n4. Optionally enable email reminders and configure SMTP, the support mailbox, and your public Silo URL. If moving from an existing Surichat installation, follow the migration guide before enabling reminders.",
     "homepage_url": "https://github.com/deejayexe/silo-plugin-suricata/tree/main/plugins/surichat",
     "source_url": "https://github.com/deejayexe/silo-plugin-suricata",
     "support_url": "https://github.com/deejayexe/silo-plugin-suricata/issues",

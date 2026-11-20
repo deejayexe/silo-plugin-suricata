@@ -17,11 +17,6 @@ const translations = {
   "Reintentar": "Retry",
   "Idioma": "Language",
   "Conversaciones": "Conversations",
-  "Buscar una cuenta de Silo": "Find a Silo account",
-  "Usuario o correo": "Username or email",
-  "Buscar": "Search",
-  "Chats abiertos": "Open chats",
-  "Elige una conversación": "Choose a conversation",
   "Administrador de Silo": "Silo administrator",
   "Abriendo la conversación…": "Opening the conversation…",
   "Ver mensajes anteriores": "View older messages",
@@ -35,7 +30,6 @@ const translations = {
   "Vuelve a abrir Surichat desde tu sesión de Silo.": "Reopen Surichat from your Silo session.",
   "No se pudo conectar con Surichat.": "Could not connect to Surichat.",
   "No se pudo completar la solicitud.": "Could not complete the request.",
-  "Sin cuentas activas con ese usuario o correo.": "No active accounts match that username or email.",
   "Acceso reservado a administración.": "Administrator access required.",
   "Ruta desconocida.": "Unknown route.",
   "No se pudo abrir el historial. Comprueba la ruta y los permisos de SQLite.": "Could not open the history. Check the SQLite path and permissions.",
@@ -48,7 +42,6 @@ const translations = {
   "Selecciona un usuario.": "Select a user.",
   "No se pudo verificar la cuenta de Silo.": "Could not verify the Silo account.",
   "No se pudo acceder al historial.": "Could not access the history.",
-  "Escribe el nombre de usuario o correo exacto.": "Enter the exact username or email.",
   "Configura la URL interna y la clave de Silo para iniciar chats.": "Configure the internal Silo URL and API key to start chats.",
   "No se pudo consultar las cuentas del servidor.": "Could not look up accounts on the server.",
 };
@@ -101,7 +94,24 @@ function renderLanguage() {
 }
 
 async function request(route, options = {}) {
-  const response = await fetch(new URL(route, base), { ...options, cache: "no-store", redirect: "error" });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12000);
+  try {
+    return await readResponse(await fetch(new URL(route, base), {
+      ...options,
+      cache: "no-store",
+      redirect: "error",
+      signal: controller.signal,
+    }), route);
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error("No se pudo conectar con Surichat.");
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function readResponse(response, route) {
   const json = response.headers.get("content-type")?.includes("json");
   if (response.status === 401 || (response.status === 403 && (route.startsWith("state?") || !json))) {
     const error = new Error("Vuelve a abrir Surichat desde tu sesión de Silo.");

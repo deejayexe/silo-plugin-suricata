@@ -234,16 +234,20 @@ func (m mailSettings) validated() (mailSettings, error) {
 	}
 	port, err := strconv.Atoi(m.port)
 	if m.host == "" || err != nil || port < 1 || port > 65535 {
-		return m, errors.New("configura un servidor y puerto SMTP válidos")
+		return m, errors.New("configure a valid SMTP host and port")
+	}
+	m.port = strconv.Itoa(port)
+	if m.username == "" && m.password != "" {
+		return m, errors.New("configure an SMTP username when a password is set")
 	}
 	if !validMailbox(m.from) || !validMailbox(m.supportEmail) {
-		return m, errors.New("configura direcciones válidas de remitente y soporte")
+		return m, errors.New("configure valid sender and support email addresses")
 	}
 	if m.webURL != "" {
 		u, err := url.Parse(m.webURL)
 		if err != nil || (u.Scheme != "https" && u.Scheme != "http") || u.Host == "" ||
 			u.User != nil || u.RawQuery != "" || u.Fragment != "" || strings.ContainsAny(m.webURL, "\r\n") {
-			return m, errors.New("configura una URL pública de Silo válida")
+			return m, errors.New("configure a valid public Silo URL")
 		}
 	}
 	return m, nil

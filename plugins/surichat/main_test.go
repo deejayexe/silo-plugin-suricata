@@ -18,8 +18,23 @@ func TestChatIsolationAndPersistence(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := manifest.Load(raw); err != nil {
+	spec, err := manifest.Load(raw)
+	if err != nil {
 		t.Fatal(err)
+	}
+
+	if spec.GetPluginId() != "local.surichat" {
+		t.Fatalf("unexpected Surichat identity: %q", spec.GetPluginId())
+	}
+	var reminder *pb.CapabilityDescriptor
+	for _, capability := range spec.GetCapabilities() {
+		if capability.GetId() == "mail_reminders" {
+			reminder = capability
+			break
+		}
+	}
+	if trigger := reminder.GetScheduledTask().GetDefaultTrigger(); trigger.GetType() != "interval" || trigger.GetIntervalMs() != 300000 {
+		t.Fatalf("unexpected reminder schedule: %v", trigger)
 	}
 
 	directory := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
