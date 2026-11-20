@@ -26,7 +26,7 @@ class CatalogTests(unittest.TestCase):
                              (directory / "repository.json").read_bytes())
             entries = json.loads((directory / "manifest.json").read_text())["plugins"]
             self.assertEqual({e["manifest"]["plugin_id"] for e in entries},
-                             {"silo.surimatrix", "silo.gotify", "community.duplicata-versions"})
+                             {"silo.surimatrix", "silo.gotify", "community.duplicata-versions", "local.silo-soporte"})
             for entry in entries:
                 manifest = entry["manifest"]
                 for platform, binary in entry["binaries"].items():

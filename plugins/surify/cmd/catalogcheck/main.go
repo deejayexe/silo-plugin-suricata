@@ -59,8 +59,8 @@ func main() {
 	if err := json.Unmarshal(raw, &catalog); err != nil {
 		panic(err)
 	}
-	if len(catalog.Plugins) != 3 {
-		panic("expected exactly three plugins")
+	if len(catalog.Plugins) != 4 {
+		panic("expected exactly four plugins")
 	}
 	seen := map[string]bool{}
 	for _, entry := range catalog.Plugins {

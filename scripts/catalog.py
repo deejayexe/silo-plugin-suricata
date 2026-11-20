@@ -1,4 +1,4 @@
-"""Package the three plugins into one Silo catalog using actual binary hashes."""
+"""Package the plugins into one Silo catalog using actual binary hashes."""
 import argparse
 import copy
 import hashlib
@@ -8,7 +8,7 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PLUGINS = ("surimatrix", "surify", "duplicata")
+PLUGINS = ("surimatrix", "surify", "duplicata", "surichat")
 
 
 def build(directory, repo, tag, build_number, stable=False):

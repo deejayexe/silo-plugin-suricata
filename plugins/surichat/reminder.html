@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es" style="color-scheme:dark;supported-color-schemes:dark;">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<style>@media (max-width:480px){.silo-shell{padding:24px 12px 36px!important}.silo-card{padding:24px 20px!important}}</style>
+</head>
+<body bgcolor="#141417" style="margin:0;padding:0;background-color:#141417;color:#e8e8ec;font:14px/1.6 'Plus Jakarta Sans','Avenir Next','Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">Tienes mensajes pendientes en Surichat / You have unread messages in Surichat</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#141417">
+<tr><td align="center" class="silo-shell" style="padding:36px 16px 48px">
+<table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:560px">
+{{if .Width}}<tr><td style="padding:0 6px 20px;color:#e8e8ec;font:600 16px/1.2 'Plus Jakarta Sans','Avenir Next','Segoe UI',Helvetica,Arial,sans-serif">
+<img src="cid:silo-logo" width="{{.Width}}" height="{{.Height}}" alt="{{.Name}}" style="display:block;border:0;outline:none;max-width:100%">
+</td></tr>{{end}}
+<tr><td class="silo-card" bgcolor="#1c1c20" style="background-color:#1c1c20;border:1px solid #2e2e35;border-radius:12px;padding:28px 32px;color:#e8e8ec;font:14px/1.6 'Plus Jakarta Sans','Avenir Next','Segoe UI',Helvetica,Arial,sans-serif">
+<h1 style="margin:0 0 16px;font-size:18px;line-height:1.4">Mensajes pendientes en Surichat en {{.Name}}</h1>
+<p style="margin:0 0 16px">{{if .Recipient}}Hola, {{.Recipient}}. {{end}}{{if eq .Unread 1}}Tienes un mensaje pendiente.{{else}}Tienes {{.Unread}} mensajes pendientes.{{end}} Inicia sesión en {{.Name}} y abre <strong>Surichat</strong> desde el menú de usuario.</p>
+<div lang="en">
+<h2 style="margin:0 0 12px;font-size:16px">Unread Surichat messages on {{.Name}}</h2>
+<p style="margin:0 0 16px">{{if .Recipient}}Hi {{.Recipient}}. {{end}}{{if eq .Unread 1}}You have one unread message.{{else}}You have {{.Unread}} unread messages.{{end}} Sign in to {{.Name}} and open <strong>Surichat</strong> from the user menu.</p>
+</div>
+{{if .URL}}<a href="{{.URL}}" style="display:inline-block;border:1px solid #f1f1f4;background:#f1f1f4;border-radius:8px;padding:10px 18px;text-decoration:none;color:#18181b;font-weight:600">Iniciar sesión / Sign in</a>{{end}}
+</td></tr></table></td></tr></table>
+</body>
+</html>

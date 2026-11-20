@@ -1,0 +1,203 @@
+{
+  "plugin_id": "local.silo-soporte",
+  "version": "0.4.5",
+  "checksum": "__CHECKSUM__",
+  "silo_api_version": "v1",
+  "supported_platforms": [
+    {
+      "os": "linux",
+      "arch": "amd64"
+    },
+    {
+      "os": "linux",
+      "arch": "arm64"
+    }
+  ],
+  "capabilities": [
+    {
+      "type": "http_routes.v1",
+      "id": "support",
+      "display_name": "Surichat"
+    },
+    {
+      "type": "scheduled_task.v1",
+      "id": "mail_reminders",
+      "display_name": "Surichat email reminders",
+      "scheduled_task": {
+        "default_trigger": {
+          "type": "interval",
+          "interval_ms": 60000
+        }
+      }
+    }
+  ],
+  "global_config_schema": [
+    {
+      "key": "support",
+      "title": "Surichat settings",
+      "json_schema": "{\"type\": \"object\", \"properties\": {\"database\": {\"type\": \"string\"}, \"server_url\": {\"type\": \"string\"}, \"api_key\": {\"type\": \"string\", \"writeOnly\": true}}, \"additionalProperties\": false}",
+      "admin_form": {
+        "fields": [
+          {
+            "key": "database",
+            "label": "Absolute SQLite path",
+            "control": "ADMIN_FORM_CONTROL_TEXT"
+          },
+          {
+            "key": "server_url",
+            "label": "Internal Silo URL",
+            "control": "ADMIN_FORM_CONTROL_TEXT"
+          },
+          {
+            "key": "api_key",
+            "label": "Administrator API key",
+            "control": "ADMIN_FORM_CONTROL_PASSWORD",
+            "secret": true
+          }
+        ]
+      }
+    },
+    {
+      "key": "mail",
+      "title": "Email reminders",
+      "json_schema": "{\"type\": \"object\", \"properties\": {\"enabled\": {\"type\": \"boolean\"}, \"support_email\": {\"type\": \"string\"}, \"smtp_host\": {\"type\": \"string\"}, \"smtp_port\": {\"type\": \"string\"}, \"smtp_from\": {\"type\": \"string\"}, \"smtp_user\": {\"type\": \"string\"}, \"smtp_password\": {\"type\": \"string\", \"writeOnly\": true}, \"web_url\": {\"type\": \"string\"}, \"first_delay_minutes\": {\"type\": \"integer\", \"minimum\": 1, \"maximum\": 10080, \"default\": 10}, \"repeat_delay_hours\": {\"type\": \"integer\", \"minimum\": 1, \"maximum\": 168, \"default\": 4}}, \"additionalProperties\": false}",
+      "admin_form": {
+        "fields": [
+          {
+            "key": "enabled",
+            "label": "Enable reminders",
+            "control": "ADMIN_FORM_CONTROL_SWITCH",
+            "description": "Turn on email reminders for unread chat messages."
+          },
+          {
+            "key": "support_email",
+            "label": "Support email",
+            "control": "ADMIN_FORM_CONTROL_TEXT",
+            "description": "Email address that receives alerts for messages from users."
+          },
+          {
+            "key": "smtp_host",
+            "label": "SMTP host",
+            "control": "ADMIN_FORM_CONTROL_TEXT",
+            "description": "Hostname of your outgoing mail server, such as smtp.example.com."
+          },
+          {
+            "key": "smtp_port",
+            "label": "SMTP port (587, 465)",
+            "control": "ADMIN_FORM_CONTROL_TEXT",
+            "description": "Use 587 for STARTTLS or 465 for direct TLS. Leave blank to use 587."
+          },
+          {
+            "key": "smtp_from",
+            "label": "From address",
+            "control": "ADMIN_FORM_CONTROL_TEXT",
+            "description": "Sender email address authorized by your mail provider."
+          },
+          {
+            "key": "smtp_user",
+            "label": "SMTP username",
+            "control": "ADMIN_FORM_CONTROL_TEXT",
+            "description": "SMTP login name. Leave blank if your server does not require authentication."
+          },
+          {
+            "key": "smtp_password",
+            "label": "SMTP password",
+            "control": "ADMIN_FORM_CONTROL_PASSWORD",
+            "secret": true,
+            "description": "SMTP password or app password, if your mail provider requires one."
+          },
+          {
+            "key": "web_url",
+            "label": "Public Silo URL",
+            "control": "ADMIN_FORM_CONTROL_TEXT",
+            "description": "Public address of your Silo home page, used by the email sign-in button."
+          },
+          {
+            "key": "first_delay_minutes",
+            "label": "First reminder delay (minutes)",
+            "control": "ADMIN_FORM_CONTROL_NUMBER",
+            "description": "Minutes an unread message must wait before the first email. Default: 10."
+          },
+          {
+            "key": "repeat_delay_hours",
+            "label": "Second reminder delay after first (hours)",
+            "control": "ADMIN_FORM_CONTROL_NUMBER",
+            "description": "Hours to wait after the first attempt before a second email, if still unread. Default: 4."
+          }
+        ]
+      }
+    }
+  ],
+  "http_routes": [
+    {
+      "id": "support-page",
+      "method": "GET",
+      "path": "/support",
+      "access": "authenticated",
+      "navigable": true,
+      "navigation_label": "Surichat",
+      "navigation_kind": "user"
+    },
+    {
+      "id": "script",
+      "method": "GET",
+      "path": "/support.js",
+      "access": "authenticated"
+    },
+    {
+      "id": "style",
+      "method": "GET",
+      "path": "/support.css",
+      "access": "authenticated"
+    },
+    {
+      "id": "state",
+      "method": "GET",
+      "path": "/state",
+      "access": "authenticated"
+    },
+    {
+      "id": "send",
+      "method": "POST",
+      "path": "/send",
+      "access": "authenticated"
+    },
+    {
+      "id": "find",
+      "method": "GET",
+      "path": "/find",
+      "access": "admin"
+    },
+    {
+      "id": "mark-read",
+      "method": "POST",
+      "path": "/read",
+      "access": "authenticated"
+    },
+    {
+      "id": "surichat-logo",
+      "method": "GET",
+      "path": "/surichat.png",
+      "access": "authenticated"
+    },
+    {
+      "id": "directory",
+      "method": "GET",
+      "path": "/directory",
+      "access": "admin"
+    }
+  ],
+  "presentation": {
+    "display_name": "Surichat",
+    "summary": "Private support chat for Silo users and administrators.",
+    "description_markdown": "![Surichat](https://raw.githubusercontent.com/deejayexe/silo-plugin-suricata/main/plugins/surichat/brand/surichat.png)\n\nPrivate support chat with an administrator inbox, unread counts, and optional email reminders. Messages and read status are stored in an SQLite file on your server. The web interface is available in English and Spanish.",
+    "setup_markdown": "1. Install Surichat from the Suricata catalog. Open Surichat from Silo Web.\n2. Set an absolute path on a writable, persistent volume for the SQLite database.\n3. Configure the internal Silo URL and a dedicated administrator API key with the monitor-read scope to list user accounts.\n4. Optionally enable email reminders and configure SMTP, the support mailbox, and your public Silo URL.",
+    "homepage_url": "https://github.com/deejayexe/silo-plugin-suricata/tree/main/plugins/surichat",
+    "source_url": "https://github.com/deejayexe/silo-plugin-suricata",
+    "support_url": "https://github.com/deejayexe/silo-plugin-suricata/issues",
+    "changelog_url": "https://github.com/deejayexe/silo-plugin-suricata/releases",
+    "publisher_name": "deejayexe",
+    "publisher_url": "https://github.com/deejayexe",
+    "license_spdx": "MIT"
+  }
+}
