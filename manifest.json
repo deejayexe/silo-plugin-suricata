@@ -3,15 +3,15 @@
     {
       "binaries": {
         "linux/amd64": {
-          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.2/surimatrix-linux-amd64",
-          "checksum": "4e6a2c63d94f715bed2039c2e7faccbd69c90fa88cdf7e31c6df4b6da1a90fb4"
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/surimatrix-linux-amd64",
+          "checksum": "31028222263e462a31089422079638c1641b95bee408e5bc4128811eca3c129f"
         },
         "linux/arm64": {
-          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.2/surimatrix-linux-arm64",
-          "checksum": "48b24d877cbc0c7a5281cb61116f4ed729364858baa2ff5c813ac852dbee7a04"
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/surimatrix-linux-arm64",
+          "checksum": "79cfeaafaddf94a9854190fd5ce424b686896fbef865b6610654af3533025952"
         }
       },
-      "checksums_url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.2/checksums.txt",
+      "checksums_url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/checksums.txt",
       "manifest": {
         "plugin_id": "silo.surimatrix",
         "version": "0.0.1",
@@ -202,19 +202,19 @@
     {
       "binaries": {
         "linux/amd64": {
-          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.2/surify-linux-amd64",
-          "checksum": "930bbc4ad7f2e7d2a68e9411053319472f4732173dd4028efaaa695f269d35f1"
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/surify-linux-amd64",
+          "checksum": "4b611b195e3001b4bbaf33220199e076368c3c12c4a9261b0a0e1e5870644b81"
         },
         "linux/arm64": {
-          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.2/surify-linux-arm64",
-          "checksum": "94f545101fd91eb59fa31d4e0da611a318a6068f32d71fab6089325af14daf1d"
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/surify-linux-arm64",
+          "checksum": "3542fed4e993eb9bcc1f8f93b03e701439688830235cf65ef0417e556715d8d4"
         },
         "darwin/arm64": {
-          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.2/surify-darwin-arm64",
-          "checksum": "0b98f386de27fbad76244f422dfa6c0f487109a081dd7b6eb46cbec2eebc53b9"
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/surify-darwin-arm64",
+          "checksum": "f7ca6e1e5c6132027704c7bb234d955911ebb4ac926cd7898f39910a7c3ab9be"
         }
       },
-      "checksums_url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.2/checksums.txt",
+      "checksums_url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/checksums.txt",
       "manifest": {
         "plugin_id": "silo.gotify",
         "version": "0.0.2",
@@ -399,15 +399,15 @@
     {
       "binaries": {
         "linux/amd64": {
-          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.2/duplicata-linux-amd64",
-          "checksum": "cebf6f9d16fd2f013ceedee84602963b6625ac7bd425ebecc04bd62a4690e64d"
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/duplicata-linux-amd64",
+          "checksum": "61e2e77f46a333e783232340bab0fd5dff7a8e8db1011e9123da8cc75886eb73"
         },
         "linux/arm64": {
-          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.2/duplicata-linux-arm64",
-          "checksum": "3a9db33bd645727ff53704513d57ed8a377360cb73babf7574e4637087243587"
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/duplicata-linux-arm64",
+          "checksum": "147ae08e04d9513d895e3490181dc3f2218e11a82f22cbedbe346e1cca405a3b"
         }
       },
-      "checksums_url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.2/checksums.txt",
+      "checksums_url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/checksums.txt",
       "manifest": {
         "plugin_id": "community.duplicata-versions",
         "version": "0.1.1",
@@ -628,6 +628,216 @@
           "description_markdown": "Compare movie and episode versions by path, size, codecs, duration and edition. Optional manual deletion retains another verified path. Hardlinks are supported. No direct database access. Includes resumable in-memory analysis history and responsive mobile version cards. Shows estimated released space per deleted file and per analysis, including history.",
           "setup_markdown": "1. Save an administrator API key.\n2. Open Duplicata Versions, check the connection and scan a library.\n3. To delete files, configure authorized real folders, enable deletion and allow write access in the Silo container. Scan again after changing settings.\n4. Review the resolved path and retained copy before confirming. Deletion is permanent. Silo updates its catalog on its next library scan.\n\nResults are held in memory. Use at your own risk; you are responsible for accidental deletion and misuse.",
           "homepage_url": "https://github.com/deejayexe/silo-plugin-suricata/tree/main/plugins/duplicata",
+          "source_url": "https://github.com/deejayexe/silo-plugin-suricata",
+          "support_url": "https://github.com/deejayexe/silo-plugin-suricata/issues",
+          "changelog_url": "https://github.com/deejayexe/silo-plugin-suricata/releases",
+          "publisher_name": "deejayexe",
+          "publisher_url": "https://github.com/deejayexe",
+          "license_spdx": "MIT"
+        }
+      },
+      "repo_url": "https://github.com/deejayexe/silo-plugin-suricata"
+    },
+    {
+      "binaries": {
+        "linux/amd64": {
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/surichat-linux-amd64",
+          "checksum": "18df6efbb1a925816d97d92229ffa07581bc2d5b1ee5e25d090052e0e2ef4526"
+        },
+        "linux/arm64": {
+          "url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/surichat-linux-arm64",
+          "checksum": "81f6b5421d5a16354d97450a7e0a940e462521925d9b3cf9923e19c9b82442cc"
+        }
+      },
+      "checksums_url": "https://github.com/deejayexe/silo-plugin-suricata/releases/download/v0.0.3/checksums.txt",
+      "manifest": {
+        "plugin_id": "local.silo-soporte",
+        "version": "0.4.5",
+        "silo_api_version": "v1",
+        "supported_platforms": [
+          {
+            "os": "linux",
+            "arch": "amd64"
+          },
+          {
+            "os": "linux",
+            "arch": "arm64"
+          }
+        ],
+        "capabilities": [
+          {
+            "type": "http_routes.v1",
+            "id": "support",
+            "display_name": "Surichat"
+          },
+          {
+            "type": "scheduled_task.v1",
+            "id": "mail_reminders",
+            "display_name": "Surichat email reminders"
+          }
+        ],
+        "global_config_schema": [
+          {
+            "key": "support",
+            "title": "Surichat settings",
+            "json_schema": "{\"type\": \"object\", \"properties\": {\"database\": {\"type\": \"string\"}, \"server_url\": {\"type\": \"string\"}, \"api_key\": {\"type\": \"string\", \"writeOnly\": true}}, \"additionalProperties\": false}",
+            "admin_form": {
+              "fields": [
+                {
+                  "key": "database",
+                  "label": "Absolute SQLite path",
+                  "control": 1
+                },
+                {
+                  "key": "server_url",
+                  "label": "Internal Silo URL",
+                  "control": 1
+                },
+                {
+                  "key": "api_key",
+                  "label": "Administrator API key",
+                  "control": 3,
+                  "secret": true
+                }
+              ]
+            }
+          },
+          {
+            "key": "mail",
+            "title": "Email reminders",
+            "json_schema": "{\"type\": \"object\", \"properties\": {\"enabled\": {\"type\": \"boolean\"}, \"support_email\": {\"type\": \"string\"}, \"smtp_host\": {\"type\": \"string\"}, \"smtp_port\": {\"type\": \"string\"}, \"smtp_from\": {\"type\": \"string\"}, \"smtp_user\": {\"type\": \"string\"}, \"smtp_password\": {\"type\": \"string\", \"writeOnly\": true}, \"web_url\": {\"type\": \"string\"}, \"first_delay_minutes\": {\"type\": \"integer\", \"minimum\": 1, \"maximum\": 10080, \"default\": 10}, \"repeat_delay_hours\": {\"type\": \"integer\", \"minimum\": 1, \"maximum\": 168, \"default\": 4}}, \"additionalProperties\": false}",
+            "admin_form": {
+              "fields": [
+                {
+                  "key": "enabled",
+                  "label": "Enable reminders",
+                  "description": "Turn on email reminders for unread chat messages.",
+                  "control": 5
+                },
+                {
+                  "key": "support_email",
+                  "label": "Support email",
+                  "description": "Email address that receives alerts for messages from users.",
+                  "control": 1
+                },
+                {
+                  "key": "smtp_host",
+                  "label": "SMTP host",
+                  "description": "Hostname of your outgoing mail server, such as smtp.example.com.",
+                  "control": 1
+                },
+                {
+                  "key": "smtp_port",
+                  "label": "SMTP port (587, 465)",
+                  "description": "Use 587 for STARTTLS or 465 for direct TLS. Leave blank to use 587.",
+                  "control": 1
+                },
+                {
+                  "key": "smtp_from",
+                  "label": "From address",
+                  "description": "Sender email address authorized by your mail provider.",
+                  "control": 1
+                },
+                {
+                  "key": "smtp_user",
+                  "label": "SMTP username",
+                  "description": "SMTP login name. Leave blank if your server does not require authentication.",
+                  "control": 1
+                },
+                {
+                  "key": "smtp_password",
+                  "label": "SMTP password",
+                  "description": "SMTP password or app password, if your mail provider requires one.",
+                  "control": 3,
+                  "secret": true
+                },
+                {
+                  "key": "web_url",
+                  "label": "Public Silo URL",
+                  "description": "Public address of your Silo home page, used by the email sign-in button.",
+                  "control": 1
+                },
+                {
+                  "key": "first_delay_minutes",
+                  "label": "First reminder delay (minutes)",
+                  "description": "Minutes an unread message must wait before the first email. Default: 10.",
+                  "control": 4
+                },
+                {
+                  "key": "repeat_delay_hours",
+                  "label": "Second reminder delay after first (hours)",
+                  "description": "Hours to wait after the first attempt before a second email, if still unread. Default: 4.",
+                  "control": 4
+                }
+              ]
+            }
+          }
+        ],
+        "http_routes": [
+          {
+            "id": "support-page",
+            "method": "GET",
+            "path": "/support",
+            "access": "authenticated",
+            "navigable": true,
+            "navigation_label": "Surichat",
+            "navigation_kind": "user"
+          },
+          {
+            "id": "script",
+            "method": "GET",
+            "path": "/support.js",
+            "access": "authenticated"
+          },
+          {
+            "id": "style",
+            "method": "GET",
+            "path": "/support.css",
+            "access": "authenticated"
+          },
+          {
+            "id": "state",
+            "method": "GET",
+            "path": "/state",
+            "access": "authenticated"
+          },
+          {
+            "id": "send",
+            "method": "POST",
+            "path": "/send",
+            "access": "authenticated"
+          },
+          {
+            "id": "find",
+            "method": "GET",
+            "path": "/find",
+            "access": "admin"
+          },
+          {
+            "id": "mark-read",
+            "method": "POST",
+            "path": "/read",
+            "access": "authenticated"
+          },
+          {
+            "id": "surichat-logo",
+            "method": "GET",
+            "path": "/surichat.png",
+            "access": "authenticated"
+          },
+          {
+            "id": "directory",
+            "method": "GET",
+            "path": "/directory",
+            "access": "admin"
+          }
+        ],
+        "presentation": {
+          "display_name": "Surichat",
+          "summary": "Private support chat for Silo users and administrators.",
+          "description_markdown": "![Surichat](https://raw.githubusercontent.com/deejayexe/silo-plugin-suricata/main/plugins/surichat/brand/surichat.png)\n\nPrivate support chat with an administrator inbox, unread counts, and optional email reminders. Messages and read status are stored in an SQLite file on your server. The web interface is available in English and Spanish.",
+          "setup_markdown": "1. Install Surichat from the Suricata catalog. Open Surichat from Silo Web.\n2. Set an absolute path on a writable, persistent volume for the SQLite database.\n3. Configure the internal Silo URL and a dedicated administrator API key with the monitor-read scope to list user accounts.\n4. Optionally enable email reminders and configure SMTP, the support mailbox, and your public Silo URL.",
+          "homepage_url": "https://github.com/deejayexe/silo-plugin-suricata/tree/main/plugins/surichat",
           "source_url": "https://github.com/deejayexe/silo-plugin-suricata",
           "support_url": "https://github.com/deejayexe/silo-plugin-suricata/issues",
           "changelog_url": "https://github.com/deejayexe/silo-plugin-suricata/releases",
