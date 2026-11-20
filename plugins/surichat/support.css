@@ -1,0 +1,70 @@
+:root {
+  color-scheme: dark;
+  font: 16px/1.5 system-ui, sans-serif;
+  --canvas: #14111d;
+  --panel: #211a2c;
+  --border: #59476a;
+  --text: #f7efff;
+  --muted: #d0c4da;
+  --accent: #ccb0ff;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--canvas); color: var(--text); }
+.shell { max-width: 1060px; margin: auto; padding: clamp(12px, 4vw, 40px); }
+.top { margin-bottom: 20px; }
+.brand { display: flex; align-items: center; gap: clamp(10px, 3vw, 20px); }
+#intro { color: var(--muted); max-width: 30ch; line-height: 1.45; }
+.brand h1 { flex-shrink: 0; }
+h1, h2, p { margin: 0; }
+h1 { font-size: clamp(1.7rem, 5vw, 2.4rem); }
+h2 { font-size: 1.05rem; }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.layout:has(aside:not([hidden])) { grid-template-columns: minmax(240px, 280px) minmax(0, 1fr); }
+aside, .chat { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; min-width: 0; }
+aside { padding: 16px; align-self: start; }
+.directory { margin-top: 12px; }
+#results:not(:empty) { color: var(--muted); margin: 6px 0; font-size: .88rem; }
+label { display: block; font-size: .88rem; margin-bottom: 5px; color: var(--muted); }
+button, textarea, input, select { font: inherit; border-radius: 8px; min-height: 44px; }
+textarea, input, select { width: 100%; min-width: 0; border: 1px solid var(--border); color: var(--text); background: var(--canvas); padding: 8px 10px; }
+textarea { resize: vertical; }
+button { background: var(--accent); color: #27173d; border: 0; font-weight: 650; padding: 8px 14px; cursor: pointer; }
+button:disabled { opacity: .65; cursor: default; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.composer > div { display: flex; gap: 8px; align-items: end; }
+.composer textarea { flex: 1; }
+.chat-head, .composer { padding: 14px 16px; }
+.chat-head { border-bottom: 1px solid var(--border); }
+.composer { border-top: 1px solid var(--border); }
+.history { height: clamp(215px, 48dvh, 560px); overflow-y: auto; padding: 14px 16px; }
+#older { display: block; margin: 0 auto 12px; }
+#messages { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
+#messages li { width: fit-content; max-width: min(85%, 480px); border-radius: 12px; background: #33263f; padding: 8px 12px; overflow-wrap: anywhere; }
+#messages li.mine { align-self: end; background: #49306b; }
+#messages .byline { display: block; color: var(--muted); font-size: .76rem; margin-bottom: 4px; }
+#messages p { white-space: pre-wrap; }
+.empty, .status { color: var(--muted); }
+.status:not(:empty) { padding: 8px 16px 0; }
+@media (max-width: 730px) {
+  .layout:has(aside:not([hidden])) { grid-template-columns: minmax(0, 1fr); }
+  #messages li { max-width: 92%; }
+}
+
+.top, .chat-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+#unread { margin: 0 0 16px; padding: 10px 14px; border: 1px solid #a47f33; border-radius: 10px; color: #ffe7a0; background: #322811; font-weight: 700; }
+#accounts { list-style: none; margin: 12px 0 0; padding: 3px; display: grid; gap: 6px; max-height: 22rem; overflow: auto; }
+.account { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; text-align: start; color: var(--text); background: var(--canvas); border: 1px solid var(--border); overflow-wrap: anywhere; }
+.account[aria-current="true"] { border-color: var(--accent); background: #49306b; }
+.account-unread { flex: none; border-radius: 99px; padding: 0 8px; color: #33240c; background: #ffd36d; font-weight: 750; }
+#title { overflow-wrap: anywhere; }
+#read { background: transparent; border: 1px solid var(--border); color: var(--text); }
+
+#back { color: var(--accent); display: inline-flex; align-items: center; min-height: 44px; text-underline-offset: 3px; }
+
+.surichat-logo { display: block; width: clamp(84px, 20vw, 116px); height: auto; }
+
+@media (max-width: 480px) {
+  .top > :first-child { flex-basis: 100%; }
+  .top { gap: 12px; }
+}

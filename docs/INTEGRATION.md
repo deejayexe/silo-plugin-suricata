@@ -16,11 +16,11 @@ Each plugin keeps its own Go module and pinned dependencies under `plugins/`. Or
 
 Readmes use Duplicata's centered logo/title, short installation instructions and practical setup sections. The general README uses 56-pixel logos. Surimatrix's longer operational guide is retained under `plugins/surimatrix/docs/`.
 
-Catalog presentation and source links point to this repository. Original licenses, attribution and runtime assets are preserved. Notification and deletion behavior is inherited from the source revisions above.
+Catalog presentation and source links point to this repository. Original licenses, attribution and runtime assets are preserved. Notification and deletion behavior of those plugins is inherited from the source revisions above. Surichat is maintained directly under `plugins/surichat`.
 
 ## Build and publication
 
-The workflow tests all three plugins with the race detector and `go vet` on native Linux amd64 and arm64. Surimatrix uses CGO, SQLite and `goolm` on Ubuntu 24.04. Surify also builds macOS arm64. It validates each native runtime manifest and the combined catalog with the Silo SDK, then publishes real binaries, per-platform zips and SHA-256 checksums.
+The workflow tests all plugins with the race detector and `go vet` on native Linux amd64 and arm64. Surimatrix uses CGO, SQLite and `goolm` on Ubuntu 24.04. Surify also builds macOS arm64. It validates each native runtime manifest and the combined catalog with the Silo SDK, then publishes real binaries, per-platform zips and SHA-256 checksums.
 
 On `main`, the root `VERSION` controls the Suricata release tag, starting at `v0.0.1`. Each plugin keeps its own version in its source manifest; Duplicata retains its higher 0.1.1 version for update compatibility. Source and public catalog manifests carry matching versions. The generated `manifest.json` and `repository.json` catalogs are published back to the source branch only after all checks pass.
 

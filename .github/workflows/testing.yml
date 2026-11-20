@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        plugin: [surimatrix, surify, duplicata]
+        plugin: [surimatrix, surify, duplicata, surichat]
         runner: [ubuntu-24.04, ubuntu-24.04-arm]
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 25
@@ -45,6 +45,7 @@ jobs:
             node --check internal/review/web/app.js
             python3 -m unittest discover -s tests -v
           fi
+          if [ "$PLUGIN" = surichat ]; then node --check support.js; fi
           git diff --exit-code -- go.mod go.sum
       - name: Build installation candidate
         env:
@@ -137,7 +138,7 @@ jobs:
         run: |
           flags=(--prerelease --latest=false)
           if [ "$GITHUB_REF_NAME" = main ]; then flags=(--latest); fi
-          gh release create "$RELEASE_TAG" "${flags[@]}" --target "$GITHUB_SHA" --title "Suricata ${{ steps.release.outputs.suite }}" --notes "Surimatrix, Surify and Duplicata from $GITHUB_SHA. Source branch: $GITHUB_REF_NAME. See each plugin README for setup and credentials." dist/*
+          gh release create "$RELEASE_TAG" "${flags[@]}" --target "$GITHUB_SHA" --title "Suricata ${{ steps.release.outputs.suite }}" --generate-notes --notes "Install the plugins from the Suricata catalog. See each plugin README for setup and credentials." dist/*
       - name: Publish catalog on the source branch
         run: |
           git fetch origin "$GITHUB_REF_NAME"

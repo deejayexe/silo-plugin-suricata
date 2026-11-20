@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="./support.css">
+  <title>Surichat · Silo</title>
+</head>
+<body>
+  <main class="shell">
+    <header class="top">
+      <div>
+        <a id="back" hidden>Volver</a>
+        <div class="brand">
+          <h1>Surichat</h1>
+          <p id="intro">Chat privado de soporte para usuarios de Silo.</p>
+        </div>
+      </div>
+      <div><label for="language">Idioma</label><select id="language">
+        <option value="es" lang="es">Español</option><option value="en" lang="en">English</option>
+      </select></div>
+    </header>
+    <p id="unread" role="status" hidden></p>
+    <div class="layout">
+      <aside id="panel" hidden>
+        <h2>Conversaciones</h2>
+        <div class="directory">
+          <label for="directory">Iniciar conversación</label>
+          <select id="directory" disabled><option value="">Cargando usuarios…</option></select>
+          <p id="results" role="status"></p>
+          <button id="retry-directory" type="button" hidden>Reintentar</button>
+        </div>
+        <ul id="accounts" aria-label="Conversaciones"></ul>
+      </aside>
+      <section class="chat" aria-labelledby="title">
+        <header class="chat-head">
+          <h2 id="title" tabindex="-1">Administrador de Silo</h2>
+          <button id="read" type="button" hidden>Marcar como leído</button>
+        </header>
+        <p class="status" id="status" role="status">Abriendo la conversación…</p>
+        <div class="history" id="history">
+          <button id="older" type="button" hidden>Ver mensajes anteriores</button>
+          <ol id="messages" aria-label="Historial"></ol>
+          <p class="empty" id="empty" hidden></p>
+        </div>
+        <form class="composer" id="compose" hidden>
+          <label for="message">Mensaje</label>
+          <div><textarea id="message" rows="2" maxlength="2000" placeholder="Escribe un mensaje…" required></textarea><button id="send">Enviar</button></div>
+        </form>
+      </section>
+    </div>
+  </main>
+  <script src="./support.js" defer></script>
+</body>
+</html>
