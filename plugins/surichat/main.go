@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"log"
 	"mime"
 	"net/http"
@@ -197,8 +198,8 @@ func (s *support) Handle(ctx context.Context, req *pb.HandleHTTPRequest) (*pb.Ha
 				return fail(404, "Ruta desconocida."), nil
 			}
 			if name == "index.html" {
-				if _, err := assets.ReadFile("brand/surichat.png"); err == nil {
-					body = []byte(strings.Replace(string(body), "<h1>Surichat</h1>", `<h1><img class="surichat-logo" src="./surichat.png" alt="Surichat"></h1>`, 1))
+				if _, err := fs.Stat(assets, "brand/surichat.png"); err == nil {
+					body = []byte(strings.Replace(string(body), "<h1>Surichat</h1>", `<h1><img class="surichat-logo" src="./surichat.png" width="512" height="473" alt="Surichat"></h1>`, 1))
 				}
 			}
 			return response(200, mimeType, body), nil

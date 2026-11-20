@@ -247,7 +247,7 @@ func TestManifestIdentityAndEvents(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if m.GetPluginId() != "silo.gotify" || m.GetVersion() != "0.0.2" {
+	if m.GetPluginId() != "silo.gotify" || m.GetVersion() != "0.0.3" {
 		t.Fatalf("identity %s %s", m.GetPluginId(), m.GetVersion())
 	}
 	if err = publicmanifest.ValidateCatalogPresentation(m, "https://github.com/deejayexe/silo-plugin-suricata"); err != nil {

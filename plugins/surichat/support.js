@@ -346,6 +346,12 @@ el("directory").addEventListener("change", event => {
 });
 el("retry-directory").addEventListener("click", loadDirectory);
 
+el("message").addEventListener("keydown", event => {
+  if (event.key !== "Enter" || event.shiftKey || event.isComposing || event.keyCode === 229) return;
+  event.preventDefault();
+  if (!event.repeat && event.currentTarget.value.trim()) el("compose").requestSubmit();
+});
+
 el("compose").addEventListener("submit", async event => {
   event.preventDefault();
   if (sending || !token || admin && !selected) return;

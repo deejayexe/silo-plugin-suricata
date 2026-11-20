@@ -18,10 +18,12 @@ import (
 	"net/mail"
 	"net/textproto"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
 
+	"golang.org/x/image/draw"
 	_ "golang.org/x/image/webp"
 )
 
@@ -29,6 +31,7 @@ var reminderTemplate = template.Must(template.ParseFS(assets, "reminder.html"))
 
 type emailBrand struct {
 	Name          string
+	Accent        string
 	PNG           []byte
 	Width, Height int
 }
@@ -45,6 +48,7 @@ func loadEmailBrand(ctx context.Context, serverURL string) emailBrand {
 	var config struct {
 		Name     string `json:"server_name"`
 		Wordmark string `json:"wordmark_url"`
+		Accent   string `json:"accent_color"`
 	}
 	if json.Unmarshal(data, &config) != nil {
 		return brand
@@ -52,6 +56,7 @@ func loadEmailBrand(ctx context.Context, serverURL string) emailBrand {
 	if name := strings.Join(strings.FieldsFunc(config.Name, func(r rune) bool { return unicode.IsSpace(r) || unicode.IsControl(r) }), " "); name != "" {
 		brand.Name = name
 	}
+	brand.Accent = config.Accent
 	ref, err := url.Parse(config.Wordmark)
 	if err != nil || ref.IsAbs() || ref.Host != "" || ref.User != nil || ref.Fragment != "" || ref.Path != "/api/v2/branding/assets/wordmark" {
 		return brand
@@ -67,14 +72,19 @@ func loadEmailBrand(ctx context.Context, serverURL string) emailBrand {
 	if err != nil {
 		return brand
 	}
+	scale := math.Min(1, math.Min(240/float64(dimensions.Width), 48/float64(dimensions.Height)))
+	displayWidth, displayHeight := max(1, int(float64(dimensions.Width)*scale)), max(1, int(float64(dimensions.Height)*scale))
+	if dimensions.Width > displayWidth*2 || dimensions.Height > displayHeight*2 {
+		scaled := image.NewNRGBA(image.Rect(0, 0, displayWidth*2, displayHeight*2))
+		draw.CatmullRom.Scale(scaled, scaled.Bounds(), logo, logo.Bounds(), draw.Src, nil)
+		logo = scaled
+	}
 	var converted bytes.Buffer
-	if err = png.Encode(&converted, logo); err != nil || converted.Len() > 2<<20 {
+	if err = png.Encode(&converted, logo); err != nil {
 		return brand
 	}
-	scale := math.Min(1, math.Min(240/float64(dimensions.Width), 48/float64(dimensions.Height)))
 	brand.PNG = converted.Bytes()
-	brand.Width = max(1, int(float64(dimensions.Width)*scale))
-	brand.Height = max(1, int(float64(dimensions.Height)*scale))
+	brand.Width, brand.Height = displayWidth, displayHeight
 	return brand
 }
 
@@ -98,18 +108,44 @@ func brandingBytes(ctx context.Context, client *http.Client, target *url.URL, li
 	return data
 }
 
+// Only validated hex colors are passed into the email's inline CSS.
+func reminderButtonColors(accent string) (background, foreground string) {
+	background = "#f59e0b"
+	accent = strings.TrimSpace(accent)
+	if len(accent) == 7 && accent[0] == '#' {
+		if _, err := strconv.ParseUint(accent[1:], 16, 24); err == nil {
+			background = strings.ToLower(accent)
+		}
+	}
+	rgb, _ := strconv.ParseUint(background[1:], 16, 24)
+	linear := func(shift uint) float64 {
+		channel := float64((rgb>>shift)&255) / 255
+		if channel <= 0.04045 {
+			return channel / 12.92
+		}
+		return math.Pow((channel+0.055)/1.055, 2.4)
+	}
+	luminance := 0.2126*linear(16) + 0.7152*linear(8) + 0.0722*linear(0)
+	if luminance < math.Sqrt(0.0525)-0.05 {
+		return background, "#ffffff"
+	}
+	return background, "#000000"
+}
+
 func reminderMessage(out io.Writer, m mailSettings, to string, unread int) error {
 	brand := m.brand
 	if brand.Name == "" {
 		brand.Name = "Silo"
 	}
+	background, foreground := reminderButtonColors(brand.Accent)
 	var html bytes.Buffer
 	if err := reminderTemplate.ExecuteTemplate(&html, "reminder.html", struct {
 		emailBrand
-		URL       string
-		Recipient string
-		Unread    int
-	}{brand, m.webURL, m.recipientName, unread}); err != nil {
+		URL                          string
+		Recipient                    string
+		Unread                       int
+		ButtonBackground, ButtonText string
+	}{brand, m.webURL, m.recipientName, unread, background, foreground}); err != nil {
 		return err
 	}
 	var spanish, english string
@@ -123,7 +159,7 @@ func reminderMessage(out io.Writer, m mailSettings, to string, unread int) error
 		spanish += fmt.Sprintf("Tienes %d mensajes pendientes.", unread)
 		english += fmt.Sprintf("You have %d unread messages.", unread)
 	}
-	plain := fmt.Sprintf("Mensajes pendientes en Surichat en %s\r\n\r\n%s Inicia sesión en %s y abre Surichat desde el menú de usuario.\r\n\r\nUnread Surichat messages on %s\r\n\r\n%s Sign in to %s and open Surichat from the user menu.\r\n", brand.Name, spanish, brand.Name, brand.Name, english, brand.Name)
+	plain := fmt.Sprintf("Mensajes pendientes en Surichat - %s\r\n\r\n%s Inicia sesión en %s y abre Surichat desde el menú de usuario.\r\n\r\nUnread Surichat messages - %s\r\n\r\n%s Sign in to %s and open Surichat from the user menu.\r\n", brand.Name, spanish, brand.Name, brand.Name, english, brand.Name)
 	if m.webURL != "" {
 		plain += "\r\n" + m.webURL + "\r\n"
 	}

@@ -1,4 +1,4 @@
-# Surify API — 0.0.2
+# Surify API — 0.0.3
 
 Every route, including the settings page, state, documentation and logo, requires
 an administrator on their primary Silo profile. The manifest uses admin access and
