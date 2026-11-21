@@ -19,25 +19,36 @@ import (
 )
 
 type item struct {
-	ID        string    `json:"content_id"`
-	Type      string    `json:"type"`
-	Title     string    `json:"title"`
-	Year      int       `json:"year"`
-	Series    string    `json:"series_title"`
-	SeriesID  string    `json:"series_id"`
-	Season    int       `json:"season_number"`
-	Episode   int       `json:"episode_number"`
-	Libraries []string  `json:"library_ids"`
-	Added     time.Time `json:"added_at"`
-	Poster    string    `json:"poster_url"`
-	Overview  string    `json:"overview"`
-	Genres    []string  `json:"genres"`
-	Rating    *float64  `json:"rating_tmdb"`
-	Versions  []struct {
-		Resolution string `json:"resolution"`
-		Video      string `json:"codec_video"`
-		Audio      string `json:"codec_audio"`
-	} `json:"versions"`
+	ID        string        `json:"content_id"`
+	Type      string        `json:"type"`
+	Title     string        `json:"title"`
+	Year      int           `json:"year"`
+	Series    string        `json:"series_title"`
+	SeriesID  string        `json:"series_id"`
+	Season    int           `json:"season_number"`
+	Episode   int           `json:"episode_number"`
+	Libraries []string      `json:"library_ids"`
+	Added     time.Time     `json:"added_at"`
+	Poster    string        `json:"poster_url"`
+	Overview  string        `json:"overview"`
+	Genres    []string      `json:"genres"`
+	Rating    *float64      `json:"rating_tmdb"`
+	Versions  []catalogFile `json:"versions"`
+	FileID    string        `json:"notification_file_id,omitempty"`
+}
+type catalogFile struct {
+	ID         string `json:"file_id,omitempty"`
+	LibraryID  string `json:"library_id,omitempty"`
+	Resolution string `json:"resolution"`
+	Video      string `json:"codec_video"`
+	Audio      string `json:"codec_audio"`
+}
+type catalogPage struct {
+	Items []item `json:"items"`
+	Page  struct {
+		HasMore bool   `json:"has_more"`
+		Next    string `json:"next_cursor"`
+	} `json:"page"`
 }
 type batch struct {
 	Frozen bool      `json:"frozen"`
@@ -46,15 +57,22 @@ type batch struct {
 	Items  []item    `json:"items"`
 }
 type progress struct {
-	Since      time.Time            `json:"since"`
-	Until      time.Time            `json:"until"`
-	Enrollment time.Time            `json:"enrollment"`
-	Cursor     string               `json:"cursor"`
-	Seen       map[string]time.Time `json:"seen"`
-	Pending    map[string]*batch    `json:"pending"`
+	Since           time.Time            `json:"since"`
+	Until           time.Time            `json:"until"`
+	Enrollment      time.Time            `json:"enrollment"`
+	Cursor          string               `json:"cursor"`
+	Seen            map[string]time.Time `json:"seen"`
+	Pending         map[string]*batch    `json:"pending"`
+	MovieFiles      map[string][]string  `json:"movie_files,omitempty"`
+	MovieFileCursor string               `json:"movie_file_cursor,omitempty"`
 }
 
-func (i item) key() string { return i.ID + ":" + i.Added.UTC().Format(time.RFC3339Nano) }
+func (i item) key() string {
+	if i.FileID != "" {
+		return "movie-file:" + i.ID + ":" + i.FileID
+	}
+	return i.ID + ":" + i.Added.UTC().Format(time.RFC3339Nano)
+}
 func groupKey(i item) string {
 	if i.Type == "episode" && i.SeriesID != "" {
 		return "season:" + i.SeriesID + ":" + strconv.Itoa(i.Season) + ":" + strings.Join(i.Libraries, ",")
@@ -95,6 +113,11 @@ func enqueue(st *progress, i item, now time.Time) {
 func getJSON(ctx context.Context, c config, path string, v any) error {
 	return siloJSON(ctx, c, path, c.SiloKey, "", v)
 }
+
+type siloHTTPStatus int
+
+func (s siloHTTPStatus) Error() string { return fmt.Sprintf("Silo API: HTTP %d", int(s)) }
+
 func siloJSON(ctx context.Context, c config, path, key, profile string, v any) error {
 	if err := httpsURL(c.SiloURL); err != nil {
 		return err
@@ -117,7 +140,7 @@ func siloJSON(ctx context.Context, c config, path, key, profile string, v any) e
 	}
 	defer r.Body.Close()
 	if r.StatusCode != 200 {
-		return fmt.Errorf("Silo API: HTTP %d", r.StatusCode)
+		return siloHTTPStatus(r.StatusCode)
 	}
 	return json.NewDecoder(io.LimitReader(r.Body, 8<<20)).Decode(v)
 }
@@ -145,7 +168,8 @@ func scan(ctx context.Context, c config, m *matrixClient) error {
 	if st.Enrollment.IsZero() {
 		st.Enrollment = now
 		st.Since = now
-		return saveJSON(path, &st)
+		fileScanErr := scanMovieFiles(ctx, c, &st, now)
+		return errors.Join(saveJSON(path, &st), fileScanErr)
 	}
 	// Fixed upper bound, resumable cursor, inclusive overlap and per-item deduplication.
 	if st.Until.IsZero() {
@@ -155,13 +179,7 @@ func scan(ctx context.Context, c config, m *matrixClient) error {
 	if st.Cursor != "" {
 		q.Set("cursor", st.Cursor)
 	}
-	var page struct {
-		Items []item `json:"items"`
-		Page  struct {
-			HasMore bool   `json:"has_more"`
-			Next    string `json:"next_cursor"`
-		} `json:"page"`
-	}
+	var page catalogPage
 	if e := getJSON(ctx, c, "/api/v2/admin/catalog/items?"+q.Encode(), &page); e != nil {
 		return e
 	}
@@ -176,6 +194,7 @@ func scan(ctx context.Context, c config, m *matrixClient) error {
 			continue
 		}
 		enqueue(&st, i, now)
+		st.observeMovieFiles(i, c.Libraries, now)
 	}
 	if page.Page.HasMore {
 		st.Cursor = page.Page.Next
@@ -184,6 +203,7 @@ func scan(ctx context.Context, c config, m *matrixClient) error {
 		st.Since = st.Until
 		st.Until = time.Time{}
 	}
+	fileScanErr := scanMovieFiles(ctx, c, &st, now)
 	// Persist queue before networking. Matrix transaction IDs survive a crash after send.
 	if e := saveJSON(path, &st); e != nil {
 		return e
@@ -257,7 +277,7 @@ func scan(ctx context.Context, c config, m *matrixClient) error {
 			delete(st.Seen, k)
 		}
 	}
-	return saveJSON(path, &st)
+	return errors.Join(saveJSON(path, &st), fileScanErr)
 }
 func formatBatch(b *batch, first item, names map[string]string, messageTitle string) string {
 	libs := make([]string, 0, len(first.Libraries))

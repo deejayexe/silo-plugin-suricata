@@ -1,4 +1,4 @@
-# Surimatrix 0.0.1
+# Surimatrix
 
 Surimatrix sends new Silo library content directly to an encrypted Matrix room. It includes native poster attachments, episode grouping, persistent encryption keys and administrator-only delivery controls. No Gotify or separate notification container is required.
 
@@ -61,7 +61,9 @@ A manual notification without available artwork is sent as encrypted text. A fai
 4. Enable automatic notifications and schedule **New content** every minute.
 5. Let the first run finish, then add content. Existing catalog items are not announced on enrollment.
 
-Movies are sent on the next run. Episodes with a stable series ID are grouped by series, season and library: five minutes after the last addition, capped at thirty minutes. Groups wait for their catalog pagination window to finish. Episodes without a stable series ID are sent individually.
+New movies are sent on the next run. When another file appears for a movie already checked, Surimatrix sends the usual movie notification with the metadata available for that file. Each file has its own Silo ID, including files with identical technical details. On the first check of each movie, Surimatrix records the files already present. Large libraries can take several scheduled runs to check in full.
+
+Episodes with a stable series ID are grouped by series, season and library. The task sends them five minutes after the last addition, capped at thirty minutes. Groups wait for their catalog pagination window to finish. Episodes without a stable series ID are sent individually.
 
 Notifications use your Silo server name by default, or an explicit custom title, followed by media type, library, title/year and available metadata. For example:
 
