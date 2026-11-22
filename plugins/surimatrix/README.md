@@ -25,7 +25,7 @@ https://raw.githubusercontent.com/deejayexe/silo-plugin-suricata/main/manifest.j
 
 ## Notifications
 
-Movies arrive on the next run. Episodes are grouped by series, season and library, usually five minutes after the last addition, with a thirty-minute maximum. **Send latest content** sends a manual test without changing automatic delivery history.
+New movies arrive on the next run. A file added to a movie already in the catalog gets its own regular movie notification when the scheduled task checks that title. Surimatrix remembers files already present when it first checks each movie. Episodes are grouped by series, season and library, usually five minutes after the last addition, with a thirty-minute maximum. **Send latest content** sends a manual test without changing automatic delivery history.
 
 Posters use public HTTPS image URLs; private image endpoints are unsupported. Back up the private storage directory with the plugin settings. Element may label the dedicated bot device as unverified.
 
