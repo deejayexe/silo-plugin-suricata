@@ -19,7 +19,7 @@ https://raw.githubusercontent.com/deejayexe/silo-plugin-suricata/main/manifest.j
 1. Save the Silo server URL and an unrestricted administrator API key. Leave the username blank for automatic account and primary-profile detection.
 2. Use a dedicated Matrix bot and device. Enter the homeserver URL, bot user ID, access token, matching device ID and encrypted room ID. Invite the bot to the room and accept the invitation.
 3. Set an absolute, persistent directory writable by Silo, such as `/config/surimatrix`. Keep its encryption keys, token and device across updates.
-4. Leave **Notification title** empty to use **Settings → Identity → Server name** from your own Silo server. An optional custom title overrides it; the previous bundled default is automatically retired on upgrade.
+4. Set **Notification title** to a custom title or leave it empty to use the name under **Settings → Identity → Server name** in Silo.
 5. Open Surimatrix from the administrator navigation. Check the Silo connection and send a poster test; confirm that Element decrypts the image.
 6. Enable **Automatic notifications** and schedule **New content** every minute. The first completed run establishes a baseline without announcing existing items.
 

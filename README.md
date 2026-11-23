@@ -6,7 +6,7 @@
 
 | | Plugin | What it does |
 | :---: | --- | --- |
-| <img src="plugins/surimatrix/logo.png" alt="Surimatrix" width="56"> | [Surimatrix](plugins/surimatrix/README.md) | Sends new movies and grouped episodes to an encrypted Matrix room, including posters. |
+| <img src="plugins/surimatrix/logo.png" alt="Surimatrix" width="56"> | [Surimatrix](plugins/surimatrix/README.md) | Sends encrypted Matrix alerts with posters for new movies, additional movie files and groups of episodes. |
 | <img src="plugins/surify/web/surify-logo.webp" alt="Surify" width="56"> | [Surify](plugins/surify/README.md) | Sends playback, new-content and server alerts through Gotify, with administrator controls. |
 | <img src="plugins/duplicata/internal/review/web/logo.png" alt="Duplicata Versions" width="56"> | [Duplicata Versions](plugins/duplicata/README.md) | Reviews movie and episode versions and optionally deletes a duplicate while retaining a verified copy. |
 | <img src="plugins/surichat/brand/surichat.png" alt="Surichat" width="56"> | [Surichat](plugins/surichat/README.md) | Private support chat for users and administrators, with optional email reminders. |
